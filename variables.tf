@@ -31,7 +31,7 @@ variable "key_permissions" {
 variable "secret_permissions" {
   type        = list(string)
   description = "List of secret permissions."
-  default     = ["Set"]
+  default     = ["Get", "List", "Set"]
 }
 
 variable "msi_id" {
@@ -43,4 +43,12 @@ variable "msi_id" {
 variable "connection_string_value" {
   type    = string
   default = ""
+}
+
+variable "tenant_id" {
+  type = string
+}
+
+variable "subscription_id" {
+  type = string
 }

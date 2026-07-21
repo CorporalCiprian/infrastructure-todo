@@ -1,5 +1,5 @@
 resource "random_pet" "rg_name" {
-  prefix = var.resource_group_name_prefix
+  prefix= var.resource_group_name_prefix
 }
 
 resource "azurerm_resource_group" "rg-test" {
@@ -31,13 +31,9 @@ resource "azurerm_key_vault_access_policy" "kv-ap" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions = [
-    "Get",
-  ]
+  key_permissions = var.key_permissions
 
-  secret_permissions = [
-    "Get", "Set", "List",
-  ]
+  secret_permissions = var.secret_permissions
 }
 
 resource "azurerm_key_vault_secret" "secret-test" {
@@ -50,4 +46,9 @@ resource "azurerm_key_vault_secret" "secret-test" {
   lifecycle {
     ignore_changes = [value]
   }
+}
+
+resource "azurerm_resource_group" "rg-sp" {
+  location= var.location
+  name= "${random_pet.rg_name.id}-service-principal"
 }
