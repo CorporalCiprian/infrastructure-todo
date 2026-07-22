@@ -1,9 +1,11 @@
 variable "location" {
   type = string
+  default= "germanywestcentral"
 }
 
 variable "resource_group_name_prefix" {
   type = string
+  default= "rg-todo-app"
 }
 
 variable "vault_name" {
@@ -43,12 +45,4 @@ variable "msi_id" {
 variable "connection_string_value" {
   type    = string
   default = ""
-}
-
-variable "tenant_id" {
-  type = string
-}
-
-variable "subscription_id" {
-  type = string
 }
