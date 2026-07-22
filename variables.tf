@@ -1,11 +1,11 @@
 variable "location" {
-  type = string
-  default= "germanywestcentral"
+  type    = string
+  default = "germanywestcentral"
 }
 
 variable "resource_group_name_prefix" {
-  type = string
-  default= "rg-todo-app"
+  type    = string
+  default = "rg-todo-app"
 }
 
 variable "vault_name" {
@@ -33,7 +33,7 @@ variable "key_permissions" {
 variable "secret_permissions" {
   type        = list(string)
   description = "List of secret permissions."
-  default     = ["Get", "List", "Set"]
+  default     = ["Get", "List", "Set", "Delete", "Recover", "Backup", "Restore", "Purge"]
 }
 
 variable "msi_id" {
