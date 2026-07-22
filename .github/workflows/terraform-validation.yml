@@ -4,9 +4,6 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  contents: read
-
 jobs:
   terraform_plan:
     uses: CorporalCiprian/todo-template/.github/workflows/terraform-validation-template.yml@main
