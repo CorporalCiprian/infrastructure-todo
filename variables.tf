@@ -44,5 +44,6 @@ variable "msi_id" {
 
 variable "connection_string_value" {
   type    = string
+  description = "test"
   default = ""
 }
