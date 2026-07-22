@@ -63,8 +63,3 @@ resource "azurerm_key_vault_secret" "secret-test" {
 
   depends_on = [azurerm_key_vault_access_policy.kv-ap]
 }
-
-resource "azurerm_resource_group" "rg-sp" {
-  location = var.location
-  name     = "${random_pet.rg_name.id}-service-principal"
-}
