@@ -24,24 +24,20 @@ resource "azurerm_key_vault" "kv-db" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   sku_name                   = var.sku_name
   soft_delete_retention_days = 7
-}
+  access_policy {
+    tenant_id    = data.azurerm_client_config.current.tenant_id
+    object_id    = data.azurerm_client_config.current.object_id
 
-resource "azurerm_key_vault_access_policy" "kv-ap" {
-  key_vault_id = azurerm_key_vault.kv-db.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
+    key_permissions = var.key_permissions
 
-  key_permissions = var.key_permissions
-
-  secret_permissions = var.secret_permissions
+    secret_permissions = var.secret_permissions
+  }
 }
 
 resource "azurerm_key_vault_secret" "secret-test" {
   name         = "connection-string"
   value        = var.connection_string_value
   key_vault_id = azurerm_key_vault.kv-db.id
-
-  depends_on = [azurerm_key_vault_access_policy.kv-ap]
   
   lifecycle {
     ignore_changes = [value]
