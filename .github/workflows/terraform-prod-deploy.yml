@@ -1,0 +1,13 @@
+name: Apply
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  terraform_plan:
+    uses: CorporalCiprian/todo-template/.github/workflows/terraform-deploy-template.yml@main
+    secrets:
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+    with:
+      env: "prod"
