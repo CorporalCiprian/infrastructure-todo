@@ -9,5 +9,5 @@ jobs:
     uses: CorporalCiprian/todo-template/.github/workflows/terraform-deploy-template.yml@main
     secrets:
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
-    inputs:
+    with:
       env: "dev"
