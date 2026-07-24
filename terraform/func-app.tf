@@ -14,4 +14,15 @@ resource "azurerm_linux_function_app" "func_todo_backend" {
     }
   }
 
+  app_settings = {
+    "SCM_DO_BUILD_DURING_DEPLOYMENT" = "true"
+    "ENABLE_ORYX_BUILD"              = "true"
+
+    "AzureWebJobsFeatureFlags" = "EnableWorkerIndexing"
+    "FUNCTIONS_WORKER_RUNTIME"  = "python"
+
+    //"DATABASE_URL" = "postgresql://${azurerm_postgresql_flexible_server.db.administrator_login}:${var.db_password}@${azurerm_postgresql_flexible_server.db.fqdn}:5432/${azurerm_postgresql_flexible_server_database.todo_db.name}"
+    
+    //"ALLOWED_ORIGINS" = var.allowed_origins
+  }
 }
