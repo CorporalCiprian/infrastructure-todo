@@ -1,6 +1,6 @@
 variable "location" {
   type    = string
-  default = "germanywestcentral"
+  default = "francecentral"
 }
 
 variable "resource_group_name_prefix" {
@@ -46,4 +46,10 @@ variable "connection_string_value" {
   type    = string
   description = "test"
   default = ""
+}
+
+variable "db_password" {
+  type = string
+  description = "default value of db pass"
+  default = "1q2w3e"
 }
