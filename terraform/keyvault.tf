@@ -5,7 +5,7 @@ resource "azurerm_key_vault" "kv_todo" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = var.sku_name
   soft_delete_retention_days = 7
-
+  rbac_authorization_enabled = true
   lifecycle {
     prevent_destroy = true
   }
@@ -31,6 +31,4 @@ resource "azurerm_key_vault_secret" "db_pass" {
   lifecycle {
     ignore_changes = [ value ]
   }
-  
-  depends_on = [ azurerm_key_vault_access_policy.kv_ap ]
 }
