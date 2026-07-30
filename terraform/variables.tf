@@ -3,7 +3,7 @@ variable "location" {
   default = "francecentral"
 }
 
-variable "resource_group_name_prefix" {
+variable "resource_group_name" {
   type    = string
   default = "rg-todo-app"
 }
@@ -36,20 +36,74 @@ variable "secret_permissions" {
   default     = ["Get", "List", "Set", "Delete", "Recover", "Backup", "Restore", "Purge"]
 }
 
-variable "msi_id" {
-  type        = string
-  description = "The Managed Service Identity ID. If this value isn't null (the default), 'data.azurerm_client_config.current.object_id' will be set to this value."
-  default     = null
-}
-
 variable "connection_string_value" {
   type    = string
-  description = "test"
+  description = "connection string to the psql db"
   default = ""
 }
 
 variable "db_password" {
   type = string
   description = "default value of db pass"
-  default = "1q2w3e"
+  default = ""
+}
+
+variable "allowed_origins" {
+  type = string
+  default = "https://func-todo-frontend.azurewebsites.net"
+}
+
+variable "asp_name" {
+  type = string
+  default = ""
+}
+
+variable "connection_string_name" {
+  type = string
+  default = ""
+}
+
+variable "db_pass_name" {
+  type = string
+  default = ""
+}
+
+variable "kv_name" {
+  type = string
+  default = ""
+}
+
+variable "backend_name" {
+  type = string
+  default = ""
+}
+
+variable "frontend_name" {
+  type = string
+  default = ""
+}
+
+variable "st_backend_name" {
+  type = string
+  default = ""
+}
+
+variable "st_frontend_name" {
+  type = string
+  default = ""
+}
+
+variable "pg_server_name" {
+  type = string
+  default = ""
+}
+
+variable "admin_db_login" {
+  type = string
+  default = ""
+}
+
+variable "pg_db_name" {
+  type = string
+  default = ""
 }

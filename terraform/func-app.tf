@@ -1,10 +1,10 @@
 resource "azurerm_linux_function_app" "func_todo_backend" {
-  name  = "func-todo-backend"
+  name  = var.backend_name
   resource_group_name = azurerm_resource_group.rg_todo.name
   service_plan_id = azurerm_service_plan.asp_func_apps.id
-  storage_account_name = azurerm_storage_account.stg_func_app.name
+  storage_account_name = azurerm_storage_account.stg_func_app_bk.name
   location = azurerm_resource_group.rg_todo.location
-  storage_account_access_key = azurerm_storage_account.stg_func_app.primary_access_key
+  storage_account_access_key = azurerm_storage_account.stg_func_app_bk.primary_access_key
   identity{
     type = "SystemAssigned"
   }
@@ -24,7 +24,7 @@ resource "azurerm_linux_function_app" "func_todo_backend" {
 
     "DATABASE_URL" = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.connection_string_db.versionless_id})"
     
-    //"ALLOWED_ORIGINS" = var.allowed_origins
+    "ALLOWED_ORIGINS" = var.allowed_origins
   }
 
   lifecycle {
@@ -33,12 +33,12 @@ resource "azurerm_linux_function_app" "func_todo_backend" {
 }
 
 resource "azurerm_linux_function_app" "func_todo_frontend" {
-  name = "func-todo-frontend"
+  name = var.frontend_name
   resource_group_name = azurerm_resource_group.rg_todo.name
   service_plan_id = azurerm_service_plan.asp_func_apps.id
-  storage_account_name = azurerm_storage_account.stg_func_app.name
+  storage_account_name = azurerm_storage_account.stg_func_app_fr.name
   location = azurerm_resource_group.rg_todo.location
-  storage_account_access_key = azurerm_storage_account.stg_func_app.primary_access_key
+  storage_account_access_key = azurerm_storage_account.stg_func_app_fr.primary_access_key
   identity {
     type = "SystemAssigned"
   }
@@ -46,6 +46,7 @@ resource "azurerm_linux_function_app" "func_todo_frontend" {
     application_stack {
       node_version = "24"
     }
+    always_on = true
   }
 
   app_settings = {
@@ -55,5 +56,10 @@ resource "azurerm_linux_function_app" "func_todo_frontend" {
     "WEBSITE_RUN_FROM_PACKAGE" = "1"
     "AzureWebJobsFeatureFlags" = "EnableWorkerIndexing"
     "FUNCTIONS_WORKER_RUNTIME"  = "node"
+    
+  }
+
+  lifecycle {
+    ignore_changes = [ app_settings["WEBSITE_RUN_FROM_PACKAGE"],]
   }
 }
