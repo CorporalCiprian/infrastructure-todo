@@ -1,4 +1,4 @@
-resource_group_name_prefix = "rg-todo-app-prod"
+resource_group_name = "rg-todo-app-prod"
 vault_name = "kv-todo-prod"
 sku_name = "standard"
 key_permissions = ["List", "Create", "Delete", "Get", "Purge", "Recover", "Update", "GetRotationPolicy", "SetRotationPolicy"]
