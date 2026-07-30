@@ -3,7 +3,6 @@ vault_name = "kv-todo-prod"
 sku_name = "standard"
 key_permissions = ["List", "Create", "Delete", "Get", "Purge", "Recover", "Update", "GetRotationPolicy", "SetRotationPolicy"]
 secret_permissions = ["Get", "List", "Set", "Delete", "Recover", "Backup", "Restore", "Purge"]
-connection_string_value = "postgresql://${azurerm_postgresql_flexible_server.db_server.administrator_login}:${var.db_password}@${azurerm_postgresql_flexible_server.db_server.fqdn}:5432/${azurerm_postgresql_flexible_server_database.todo_db.name}"
 db_password = "1q2w3e"
 allowed_origins = "https://func-todo-frontend.azurewebsites.net"
 asp_name = "asp-todo-prod"

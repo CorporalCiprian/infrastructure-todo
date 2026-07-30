@@ -13,7 +13,7 @@ resource "azurerm_key_vault" "kv_todo" {
 
 resource "azurerm_key_vault_secret" "connection_string_db" {
   name         = var.connection_string_name
-  value        = var.connection_string_value
+  value        = "postgresql://${azurerm_postgresql_flexible_server.db_server.administrator_login}:${var.db_password}@${azurerm_postgresql_flexible_server.db_server.fqdn}:5432/${azurerm_postgresql_flexible_server_database.todo_db.name}"
   key_vault_id = azurerm_key_vault.kv_todo.id
 
   lifecycle {
