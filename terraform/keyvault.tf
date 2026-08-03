@@ -6,6 +6,14 @@ resource "azurerm_resource_group" "rg_todo_kv" {
   location = var.location
 }
 
+#
+# Resource lock
+#
+resource "azurerm_management_lock" "rglock" {
+  name       = "kvlock"
+  scope      = azurerm_resource_group.rg_todo_kv.id
+  lock_level = "CanNotDelete"
+}
 
 #
 # Key Vault
@@ -18,9 +26,6 @@ resource "azurerm_key_vault" "kv_todo" {
   sku_name                   = "standard"
   soft_delete_retention_days = 7
   rbac_authorization_enabled = true
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 

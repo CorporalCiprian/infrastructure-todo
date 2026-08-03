@@ -18,7 +18,7 @@ resource "azurerm_service_plan" "asp_func_apps" {
 }
 
 #
-# Func App
+# Func Apps
 #
 resource "azurerm_linux_function_app" "func_todo_backend" {
   name  = "func-app-${var.project_name}-backend-${var.env}"
@@ -29,6 +29,8 @@ resource "azurerm_linux_function_app" "func_todo_backend" {
   
   storage_uses_managed_identity = true
   storage_account_name = azurerm_storage_account.stg_func_app_bk.name
+
+  virtual_network_subnet_id = azurerm_subnet.snet_apps.id
 
   identity{
     type = "SystemAssigned"
@@ -53,12 +55,14 @@ resource "azurerm_linux_function_app" "func_todo_backend" {
     
     "ALLOWED_ORIGINS" = "https://${azurerm_linux_function_app.func_todo_frontend.name}.azurewebsites.net"
     "AzureWebJobsStorage__accountName" = azurerm_storage_account.stg_func_app_bk.name
+    
+    "WEBSITE_VNET_ROUTE_ALL" = "1"
 
     "env" = var.env
   }
 
   lifecycle {
-    ignore_changes = [ app_settings["WEBSITE_RUN_FROM_PACKAGE"], app_settings["AzureWebJobsStorage__accountName"],]
+    ignore_changes = [ app_settings["WEBSITE_RUN_FROM_PACKAGE"], app_settings["AzureWebJobsStorage__accountName"], app_settings["WEBSITE_VNET_ROUTE_ALL"],]
   }
 }
 
@@ -70,6 +74,8 @@ resource "azurerm_linux_function_app" "func_todo_frontend" {
 
   storage_uses_managed_identity = true
   storage_account_name = azurerm_storage_account.stg_func_app_fr.name
+
+  virtual_network_subnet_id = azurerm_subnet.snet_apps.id
   
   identity {
     type = "SystemAssigned"
@@ -89,10 +95,12 @@ resource "azurerm_linux_function_app" "func_todo_frontend" {
     "AzureWebJobsFeatureFlags" = "EnableWorkerIndexing"
     "FUNCTIONS_WORKER_RUNTIME"  = "node"
     
+    "WEBSITE_VNET_ROUTE_ALL" = "1"
+
     "AzureWebJobsStorage__accountName" = azurerm_storage_account.stg_func_app_fr.name
   }
 
   lifecycle {
-    ignore_changes = [ app_settings["WEBSITE_RUN_FROM_PACKAGE"], app_settings["AzureWebJobsStorage__accountName"],]
+    ignore_changes = [ app_settings["WEBSITE_RUN_FROM_PACKAGE"], app_settings["AzureWebJobsStorage__accountName"], app_settings["WEBSITE_VNET_ROUTE_ALL"],]
   }
 }

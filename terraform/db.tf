@@ -18,9 +18,17 @@ resource "azurerm_postgresql_flexible_server" "db_server" {
   sku_name = "B_Standard_B1ms"
   version = "16"
 
+  private_dns_zone_id = azurerm_private_dns_zone.db_private_dns.id
+
+  delegated_subnet_id = azurerm_subnet.snet_db.id
+
+  public_network_access_enabled = false
+  
   lifecycle {
     ignore_changes = [ zone ]
   }
+
+  depends_on = [azurerm_private_dns_zone_virtual_network_link.db-dns-link]
 }
 
 #
