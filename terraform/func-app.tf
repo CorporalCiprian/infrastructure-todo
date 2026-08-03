@@ -29,7 +29,6 @@ resource "azurerm_linux_function_app" "func_todo_backend" {
   
   storage_uses_managed_identity = true
   storage_account_name = azurerm_storage_account.stg_func_app_bk.name
-  # TODO: func app connects to storage account with managed identity instead of sas key
 
   identity{
     type = "SystemAssigned"
