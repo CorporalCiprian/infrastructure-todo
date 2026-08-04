@@ -13,7 +13,7 @@ resource "azurerm_virtual_network" "vnet_todo" {
     name = "vnet-todo"
     location = azurerm_resource_group.rg_vnet.location
     resource_group_name = azurerm_resource_group.rg_vnet.name
-    address_space = ["10.0.0.0/16"]
+    address_space = ["10.0.0.0/25"]
 }
 
 #
@@ -23,7 +23,7 @@ resource "azurerm_subnet" "snet_backend" {
     name = "snet-todo-backend"
     resource_group_name = azurerm_resource_group.rg_vnet.name
     virtual_network_name = azurerm_virtual_network.vnet_todo.name
-    address_prefixes = ["10.0.1.0/26"]
+    address_prefixes = [cidrsubnet("10.0.0.0/25",3,0)]
 
     delegation {
       name = "asp-delegation-backend"
@@ -39,7 +39,7 @@ resource "azurerm_subnet" "snet_frontend" {
     name = "snet-todo-frontend"
     resource_group_name = azurerm_resource_group.rg_vnet.name
     virtual_network_name = azurerm_virtual_network.vnet_todo.name
-    address_prefixes = ["10.0.3.0/26"]
+    address_prefixes = [cidrsubnet("10.0.0.0/25",3,1)]
 
     delegation {
       name = "asp-delegation-frontend"
@@ -55,7 +55,7 @@ resource "azurerm_subnet" "snet_db" {
     name = "snet-todo-db"
     resource_group_name = azurerm_resource_group.rg_vnet.name
     virtual_network_name = azurerm_virtual_network.vnet_todo.name
-    address_prefixes = ["10.0.2.0/26"]
+    address_prefixes = [cidrsubnet("10.0.0.0/25",3,2)]
     delegation {
       name = "db-delegation"
       service_delegation {
@@ -63,13 +63,10 @@ resource "azurerm_subnet" "snet_db" {
         actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
       }
     }
-}
-
-resource "azurerm_subnet" "snet_stg" {
-  name = "snet-todo-stg"
-  resource_group_name = azurerm_resource_group.rg_vnet.name
-  virtual_network_name = azurerm_virtual_network.vnet_todo.name
-  address_prefixes = ["10.0.4.0/26"]
+    depends_on = [
+    azurerm_subnet.snet_backend,
+    azurerm_subnet.snet_frontend
+  ]
 }
 
 #
@@ -86,10 +83,10 @@ resource "azurerm_network_security_group" "nsg_db" {
     direction = "Inbound"
     access = "Allow"
     protocol = "Tcp"
-    source_address_prefix = "10.0.1.0/26"
+    source_address_prefix = azurerm_subnet.snet_backend.address_prefixes[0]
     source_port_range = "*"
     destination_port_range = "5432"
-    destination_address_prefix = "10.0.2.0/26"
+    destination_address_prefix = azurerm_subnet.snet_db.address_prefixes[0]
   }
 
   security_rule {
@@ -101,7 +98,7 @@ resource "azurerm_network_security_group" "nsg_db" {
     source_address_prefix = "*"
     source_port_range = "*"
     destination_port_range = "*"
-    destination_address_prefix = "10.0.2.0/26"
+    destination_address_prefix = azurerm_subnet.snet_db.address_prefixes[0]
   }
 }
 
