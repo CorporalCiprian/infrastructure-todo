@@ -7,15 +7,6 @@ resource "azurerm_resource_group" "rg_todo_kv" {
 }
 
 #
-# Resource lock
-#
-resource "azurerm_management_lock" "rglock" {
-  name       = "kvlock"
-  scope      = azurerm_resource_group.rg_todo_kv.id
-  lock_level = "CanNotDelete"
-}
-
-#
 # Key Vault
 #
 resource "azurerm_key_vault" "kv_todo" {

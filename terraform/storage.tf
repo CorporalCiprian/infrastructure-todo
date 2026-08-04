@@ -7,15 +7,6 @@ resource "azurerm_resource_group" "rg_todo_stg" {
 }
 
 #
-# Resource Lock
-#
-resource "azurerm_management_lock" "stg_lock" {
-  name       = "stglock"
-  scope      = azurerm_resource_group.rg_todo_stg.id
-  lock_level = "CanNotDelete"
-}
-
-#
 # Storage accounts
 #
 resource "azurerm_storage_account" "stg_func_app_bk" {
