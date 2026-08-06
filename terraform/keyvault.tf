@@ -2,7 +2,7 @@
 # Resource Group
 #
 resource "azurerm_resource_group" "rg_todo_kv" {
-  name = "rg-${var.project_name}-kv-${var.env}"
+  name     = "rg-${var.project_name}-kv-${var.env}"
   location = var.location
 }
 
@@ -17,6 +17,16 @@ resource "azurerm_key_vault" "kv_todo" {
   sku_name                   = "standard"
   soft_delete_retention_days = 7
   rbac_authorization_enabled = true
+
+  network_acls {
+    default_action = "Deny"
+    bypass         = "AzureServices"
+
+    virtual_network_subnet_ids = [azurerm_subnet.snet_backend.id]
+    ip_rules = [
+      "136.255.102.82/32",
+    ]
+  }
 }
 
 
@@ -29,17 +39,17 @@ resource "azurerm_key_vault_secret" "connection_string_db" {
   key_vault_id = azurerm_key_vault.kv_todo.id
 
   lifecycle {
-    ignore_changes = [ value ]
+    ignore_changes = [value]
   }
 }
 
 resource "azurerm_key_vault_secret" "db_pass" {
-  name = "${var.project_name}-db-pass-${var.env}"
-  value = "1q2w3e"
+  name         = "${var.project_name}-db-pass-${var.env}"
+  value        = "1q2w3e"
   key_vault_id = azurerm_key_vault.kv_todo.id
 
   lifecycle {
-    ignore_changes = [ value ]
+    ignore_changes = [value]
   }
 }
 
