@@ -32,8 +32,6 @@ resource "azurerm_linux_function_app" "func_todo_backend" {
 
   virtual_network_subnet_id = azurerm_subnet.snet_backend.id
 
-  public_network_access_enabled = false
-
   identity {
     type = "SystemAssigned"
   }
@@ -50,6 +48,12 @@ resource "azurerm_linux_function_app" "func_todo_backend" {
       priority    = 100
       name        = "AllowAzureCloud"
     }
+    ip_restriction {
+      action = "Allow"
+      ip_address = "136.255.102.82/32"
+      priority = 100
+    }
+    
   }
 
   app_settings = {
