@@ -33,8 +33,6 @@ resource "azurerm_subnet" "snet_backend" {
         actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
       }
     }
-
-    service_endpoints = ["Microsoft.KeyVault", "Microsoft.Storage"]
 }
 
 resource "azurerm_subnet" "snet_frontend" {
@@ -60,26 +58,23 @@ resource "azurerm_subnet" "snet_stg" {
   address_prefixes = [cidrsubnet("10.0.0.0/25",3,3)]
 }
 
-    service_endpoints = ["Microsoft.Storage"]
+resource "azurerm_subnet" "snet_db" {
+    name = "snet-todo-db"
+    resource_group_name = azurerm_resource_group.rg_vnet.name
+    virtual_network_name = azurerm_virtual_network.vnet_todo.name
+    address_prefixes = [cidrsubnet("10.0.0.0/25",3,1)]
+    delegation {
+      name = "db-delegation"
+      service_delegation {
+        name    = "Microsoft.DBforPostgreSQL/flexibleServers"
+        actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+      }
+    }
+    depends_on = [
+    azurerm_subnet.snet_backend,
+    azurerm_subnet.snet_frontend
+  ]
 }
-
-# resource "azurerm_subnet" "snet_db" {
-#     name = "snet-todo-db"
-#     resource_group_name = azurerm_resource_group.rg_vnet.name
-#     virtual_network_name = azurerm_virtual_network.vnet_todo.name
-#     address_prefixes = [cidrsubnet("10.0.0.0/25",3,2)]
-#     delegation {
-#       name = "db-delegation"
-#       service_delegation {
-#         name    = "Microsoft.DBforPostgreSQL/flexibleServers"
-#         actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-#       }
-#     }
-#     depends_on = [
-#     azurerm_subnet.snet_backend,
-#     azurerm_subnet.snet_frontend
-#   ]
-# }
 
 #
 # Network Security Groups (NSG)
