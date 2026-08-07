@@ -26,41 +26,28 @@ resource "azurerm_subnet" "snet_backend" {
     address_prefixes = [cidrsubnet("10.0.0.0/25",3,0)]
 
     delegation {
-      name = "asp-delegation"
+      name = "asp-delegation-backend"
 
       service_delegation {
         name    = "Microsoft.Web/serverFarms"
         actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
       }
     }
+
+    service_endpoints = ["Microsoft.KeyVault", "Microsoft.Storage"]
 }
 
 resource "azurerm_subnet" "snet_frontend" {
     name = "snet-todo-frontend"
     resource_group_name = azurerm_resource_group.rg_vnet.name
     virtual_network_name = azurerm_virtual_network.vnet_todo.name
-    address_prefixes = [cidrsubnet("10.0.0.0/25",3,1)]
-
+    address_prefixes = [cidrsubnet("10.0.0.0/25",3,2)]
     delegation {
-      name = "asp-delegation"
+      name = "asp-delegation-frontend"
 
       service_delegation {
         name    = "Microsoft.Web/serverFarms"
         actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-      }
-    }
-}
-
-resource "azurerm_subnet" "snet_db" {
-    name = "snet-todo-db"
-    resource_group_name = azurerm_resource_group.rg_vnet.name
-    virtual_network_name = azurerm_virtual_network.vnet_todo.name
-    address_prefixes = [cidrsubnet("10.0.0.0/25",3,2)]
-    delegation {
-      name = "db-delegation"
-      service_delegation {
-        name    = "Microsoft.DBforPostgreSQL/flexibleServers"
-        actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
       }
     }
     private_endpoint_network_policies = "NetworkSecurityGroupEnabled"
@@ -73,16 +60,29 @@ resource "azurerm_subnet" "snet_stg" {
   address_prefixes = [cidrsubnet("10.0.0.0/25",3,3)]
 }
 
-#
-# Private DNS
-#
-resource "azurerm_private_dns_zone" "db_private_dns" {
-    name = "todo.postgres.database.azure.com"
-    resource_group_name = azurerm_resource_group.rg_vnet.name
+    service_endpoints = ["Microsoft.Storage"]
 }
 
+# resource "azurerm_subnet" "snet_db" {
+#     name = "snet-todo-db"
+#     resource_group_name = azurerm_resource_group.rg_vnet.name
+#     virtual_network_name = azurerm_virtual_network.vnet_todo.name
+#     address_prefixes = [cidrsubnet("10.0.0.0/25",3,2)]
+#     delegation {
+#       name = "db-delegation"
+#       service_delegation {
+#         name    = "Microsoft.DBforPostgreSQL/flexibleServers"
+#         actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+#       }
+#     }
+#     depends_on = [
+#     azurerm_subnet.snet_backend,
+#     azurerm_subnet.snet_frontend
+#   ]
+# }
+
 #
-# DNS links
+# Network Security Groups (NSG)
 #
 resource "azurerm_private_dns_zone_virtual_network_link" "db-dns-link" {
   name                = "db-dns-link"
