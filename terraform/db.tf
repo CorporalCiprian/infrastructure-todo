@@ -19,9 +19,6 @@ resource "azurerm_postgresql_flexible_server" "db_server" {
   version = "16"
 
   # delegated_subnet_id = azurerm_subnet.snet_db.id
-
-  # public_network_access_enabled = false
-  
   lifecycle {
     ignore_changes = [ zone ]
   }
