@@ -95,6 +95,7 @@ resource "azurerm_linux_function_app" "func_todo_frontend" {
       node_version = "24"
     }
     always_on = true
+    vnet_route_all_enabled = true
   }
 
   app_settings = {
