@@ -32,7 +32,7 @@ resource "azurerm_linux_function_app" "func_todo_backend" {
 
   virtual_network_subnet_id = azurerm_subnet.snet_backend.id
 
-  # public_network_access_enabled = false
+  public_network_access_enabled = false
 
   identity {
     type = "SystemAssigned"
@@ -69,7 +69,7 @@ resource "azurerm_linux_function_app" "func_todo_backend" {
   }
 
   lifecycle {
-    ignore_changes = [app_settings["WEBSITE_RUN_FROM_PACKAGE"], app_settings["AzureWebJobsStorage__accountName"], ]
+    ignore_changes = [app_settings["WEBSITE_RUN_FROM_PACKAGE"], app_settings["AzureWebJobsStorage__accountName"],]
   }
 
 
@@ -84,7 +84,7 @@ resource "azurerm_linux_function_app" "func_todo_frontend" {
   storage_uses_managed_identity = true
   storage_account_name          = azurerm_storage_account.stg_func_app_fr.name
 
-  # public_network_access_enabled = false
+  public_network_access_enabled = false
   virtual_network_subnet_id = azurerm_subnet.snet_frontend.id
 
   identity {

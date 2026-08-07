@@ -15,13 +15,6 @@ resource "azurerm_storage_account" "stg_func_app_bk" {
   location = azurerm_resource_group.rg_todo_stg.location
   account_tier    = "Standard"
   account_replication_type  = "LRS"
-
-  network_rules {
-    default_action = "Deny"
-    bypass = ["AzureServices"]
-
-    virtual_network_subnet_ids = [azurerm_subnet.snet_backend.id]
-  }
 }
 
 resource "azurerm_storage_account" "stg_func_app_fr" {
@@ -30,11 +23,4 @@ resource "azurerm_storage_account" "stg_func_app_fr" {
   location = azurerm_resource_group.rg_todo_stg.location
   account_tier    = "Standard"
   account_replication_type  = "LRS"
-
-  network_rules {
-    default_action = "Deny"
-    bypass = ["AzureServices"]
-
-    virtual_network_subnet_ids = [azurerm_subnet.snet_frontend.id]
-  }
 }
