@@ -30,7 +30,7 @@ resource "azurerm_linux_function_app" "func_todo_backend" {
   storage_uses_managed_identity = true
   storage_account_name = azurerm_storage_account.stg_func_app_bk.name
 
-  virtual_network_subnet_id = azurerm_subnet.snet_apps.id
+  virtual_network_subnet_id = azurerm_subnet.snet_backend.id
 
   identity{
     type = "SystemAssigned"
@@ -41,6 +41,7 @@ resource "azurerm_linux_function_app" "func_todo_backend" {
         python_version = "3.12"
     }
     always_on = true
+    vnet_route_all_enabled = true
   }
 
   app_settings = {
@@ -75,7 +76,7 @@ resource "azurerm_linux_function_app" "func_todo_frontend" {
   storage_uses_managed_identity = true
   storage_account_name = azurerm_storage_account.stg_func_app_fr.name
 
-  virtual_network_subnet_id = azurerm_subnet.snet_apps.id
+  virtual_network_subnet_id = azurerm_subnet.snet_frontend.id
   
   identity {
     type = "SystemAssigned"
@@ -85,6 +86,7 @@ resource "azurerm_linux_function_app" "func_todo_frontend" {
       node_version = "24"
     }
     always_on = true
+    vnet_route_all_enabled = true
   }
 
   app_settings = {

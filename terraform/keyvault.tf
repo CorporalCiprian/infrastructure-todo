@@ -7,15 +7,6 @@ resource "azurerm_resource_group" "rg_todo_kv" {
 }
 
 #
-# Resource lock
-#
-resource "azurerm_management_lock" "rglock" {
-  name       = "kvlock"
-  scope      = azurerm_resource_group.rg_todo_kv.id
-  lock_level = "CanNotDelete"
-}
-
-#
 # Key Vault
 #
 resource "azurerm_key_vault" "kv_todo" {
@@ -26,6 +17,17 @@ resource "azurerm_key_vault" "kv_todo" {
   sku_name                   = "standard"
   soft_delete_retention_days = 7
   rbac_authorization_enabled = true
+  public_network_access_enabled = false
+  
+  network_acls {
+    default_action = "Deny"
+    bypass = "AzureServices"
+    
+    virtual_network_subnet_ids = [azurerm_subnet.snet_backend.id]
+    ip_rules = [
+      "136.255.102.82/32",
+    ]
+  }
 }
 
 

@@ -7,15 +7,6 @@ resource "azurerm_resource_group" "rg_todo_stg" {
 }
 
 #
-# Resource Lock
-#
-resource "azurerm_management_lock" "stg_lock" {
-  name       = "stglock"
-  scope      = azurerm_resource_group.rg_todo_stg.id
-  lock_level = "CanNotDelete"
-}
-
-#
 # Storage accounts
 #
 resource "azurerm_storage_account" "stg_func_app_bk" {
@@ -24,6 +15,7 @@ resource "azurerm_storage_account" "stg_func_app_bk" {
   location = azurerm_resource_group.rg_todo_stg.location
   account_tier    = "Standard"
   account_replication_type  = "LRS"
+  public_network_access_enabled = false
 }
 
 resource "azurerm_storage_account" "stg_func_app_fr" {
@@ -32,4 +24,5 @@ resource "azurerm_storage_account" "stg_func_app_fr" {
   location = azurerm_resource_group.rg_todo_stg.location
   account_tier    = "Standard"
   account_replication_type  = "LRS"
+  public_network_access_enabled = false
 }
