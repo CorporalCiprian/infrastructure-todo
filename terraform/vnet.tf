@@ -70,10 +70,7 @@ resource "azurerm_subnet" "snet_db" {
         actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
       }
     }
-    depends_on = [
-    azurerm_subnet.snet_backend,
-    azurerm_subnet.snet_frontend
-  ]
+    depends_on = [azurerm_subnet.snet_backend]
 }
 
 #
@@ -103,70 +100,126 @@ resource "azurerm_private_dns_zone_virtual_network_link" "kv_dns_link" {
   virtual_network_id = azurerm_virtual_network.vnet_todo.id
 }
 
-# resource "azurerm_private_dns_zone" "stg_blob_dns" {
-#   name="privatelink.blob.core.windows.net"
-#   resource_group_name = azurerm_resource_group.rg_vnet.name
-# }
+resource "azurerm_private_dns_zone" "stg_blob_dns" {
+  name="privatelink.blob.core.windows.net"
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+}
 
-# resource "azurerm_private_dns_zone_virtual_network_link" "stg_blob_dns_link" {
-#   name                = "file-dns-link-${var.env}"
-#   resource_group_name = azurerm_resource_group.rg_vnet.name
-#   private_dns_zone_name = azurerm_private_dns_zone.stg_blob_dns.name
-#   virtual_network_id = azurerm_virtual_network.vnet_todo.id
-# }
+resource "azurerm_private_dns_zone_virtual_network_link" "stg_blob_dns_link" {
+  name                = "blob-dns-link-${var.env}"
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+  private_dns_zone_name = azurerm_private_dns_zone.stg_blob_dns.name
+  virtual_network_id = azurerm_virtual_network.vnet_todo.id
+}
 
-# resource "azurerm_private_dns_zone" "stg_file_dns" {
-#   name="privatelink.file.core.windows.net"
-#   resource_group_name = azurerm_resource_group.rg_vnet.name
-# }
+resource "azurerm_private_dns_zone" "stg_file_dns" {
+  name="privatelink.file.core.windows.net"
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+}
 
-# resource "azurerm_private_dns_zone_virtual_network_link" "stg_file_dns_link" {
-#   name                = "file-dns-link-${var.env}"
-#   resource_group_name = azurerm_resource_group.rg_vnet.name
-#   private_dns_zone_name = azurerm_private_dns_zone.stg_file_dns.name
-#   virtual_network_id = azurerm_virtual_network.vnet_todo.id
-# }
+resource "azurerm_private_dns_zone_virtual_network_link" "stg_file_dns_link" {
+  name                = "file-dns-link-${var.env}"
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+  private_dns_zone_name = azurerm_private_dns_zone.stg_file_dns.name
+  virtual_network_id = azurerm_virtual_network.vnet_todo.id
+}
 
-# resource "azurerm_private_dns_zone" "stg_queue_dns" {
-#   name="privatelink.queue.core.windows.net"
-#   resource_group_name = azurerm_resource_group.rg_vnet.name
-# }
+resource "azurerm_private_dns_zone" "stg_queue_dns" {
+  name="privatelink.queue.core.windows.net"
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+}
 
-# resource "azurerm_private_dns_zone_virtual_network_link" "stg_queue_dns_link" {
-#   name                = "queue-dns-link-${var.env}"
-#   resource_group_name = azurerm_resource_group.rg_vnet.name
-#   private_dns_zone_name = azurerm_private_dns_zone.stg_queue_dns.name
-#   virtual_network_id = azurerm_virtual_network.vnet_todo.id
-# }
+resource "azurerm_private_dns_zone_virtual_network_link" "stg_queue_dns_link" {
+  name                = "queue-dns-link-${var.env}"
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+  private_dns_zone_name = azurerm_private_dns_zone.stg_queue_dns.name
+  virtual_network_id = azurerm_virtual_network.vnet_todo.id
+}
 
-# resource "azurerm_private_dns_zone" "stg_table_dns" {
-#   name="privatelink.table.core.windows.net"
-#   resource_group_name = azurerm_resource_group.rg_vnet.name
-# }
+resource "azurerm_private_dns_zone" "stg_table_dns" {
+  name="privatelink.table.core.windows.net"
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+}
 
-# resource "azurerm_private_dns_zone_virtual_network_link" "stg_table_dns_link" {
-#   name                = "table-dns-link-${var.env}"
-#   resource_group_name = azurerm_resource_group.rg_vnet.name
-#   private_dns_zone_name = azurerm_private_dns_zone.stg_table_dns.name
-#   virtual_network_id = azurerm_virtual_network.vnet_todo.id
-# }
+resource "azurerm_private_dns_zone_virtual_network_link" "stg_table_dns_link" {
+  name                = "table-dns-link-${var.env}"
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+  private_dns_zone_name = azurerm_private_dns_zone.stg_table_dns.name
+  virtual_network_id = azurerm_virtual_network.vnet_todo.id
+}
 
 
 
 #
 # Private endpoints
 #
-# resource "azurerm_private_endpoint" "pep_stg_backend" {
-#   name = "pep-stg-backend-${var.env}"
-#   subnet_id = azurerm_subnet.snet_stg.id
-#   location = azurerm_resource_group.rg_vnet.location
-#   resource_group_name = azurerm_resource_group.rg_vnet.name
-#   private_service_connection {
-#     name = "service-conn-backend-stg-${var.env}"
-#     is_manual_connection = false
-#     private_connection_resource_id = azurerm_storage_account.stg_func_app_bk.id
-#   }
-# }
+resource "azurerm_private_endpoint" "pep_blob" {
+  name = "pep-blob-backend-${var.env}"
+  subnet_id = azurerm_subnet.snet_stg.id
+  location = azurerm_resource_group.rg_vnet.location
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+  private_service_connection {
+    name = "service-conn-apps-blob-${var.env}"
+    is_manual_connection = false
+    private_connection_resource_id = azurerm_storage_account.stg_func_app.id
+    subresource_names = ["blob"]
+  }
+  private_dns_zone_group {
+    name = "dns-group-blob-${var.env}"
+    private_dns_zone_ids = [azurerm_private_dns_zone.stg_blob_dns.id]
+  }
+}
+
+resource "azurerm_private_endpoint" "pep_file" {
+  name = "pep-file-backend-${var.env}"
+  subnet_id = azurerm_subnet.snet_stg.id
+  location = azurerm_resource_group.rg_vnet.location
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+  private_service_connection {
+    name = "service-conn-apps-file-${var.env}"
+    is_manual_connection = false
+    private_connection_resource_id = azurerm_storage_account.stg_func_app.id
+    subresource_names = ["file"]
+  }
+  private_dns_zone_group {
+    name = "dns-group-file-${var.env}"
+    private_dns_zone_ids = [azurerm_private_dns_zone.stg_file_dns.id]
+  }
+}
+
+resource "azurerm_private_endpoint" "pep_queue" {
+  name = "pep-queue-backend-${var.env}"
+  subnet_id = azurerm_subnet.snet_stg.id
+  location = azurerm_resource_group.rg_vnet.location
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+  private_service_connection {
+    name = "service-conn-apps-queue-${var.env}"
+    is_manual_connection = false
+    private_connection_resource_id = azurerm_storage_account.stg_func_app.id
+    subresource_names = ["queue"]
+  }
+  private_dns_zone_group {
+    name = "dns-group-queue-${var.env}"
+    private_dns_zone_ids = [azurerm_private_dns_zone.stg_queue_dns.id]
+  }
+}
+
+resource "azurerm_private_endpoint" "pep_table" {
+  name = "pep-table-backend-${var.env}"
+  subnet_id = azurerm_subnet.snet_stg.id
+  location = azurerm_resource_group.rg_vnet.location
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+  private_service_connection {
+    name = "service-conn-apps-table-${var.env}"
+    is_manual_connection = false
+    private_connection_resource_id = azurerm_storage_account.stg_func_app.id
+    subresource_names = ["table"]
+  }
+  private_dns_zone_group {
+    name = "dns-group-table-${var.env}"
+    private_dns_zone_ids = [azurerm_private_dns_zone.stg_table_dns.id]
+  }
+}
 
 # resource "azurerm_private_endpoint" "pep_stg_frontend" {
 #   name = "pep-stg-frontend-${var.env}"

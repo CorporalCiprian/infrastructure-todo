@@ -28,7 +28,7 @@ resource "azurerm_linux_function_app" "func_todo_backend" {
   service_plan_id = azurerm_service_plan.asp_func_apps.id
 
   storage_uses_managed_identity = true
-  storage_account_name          = azurerm_storage_account.stg_func_app_bk.name
+  storage_account_name          = azurerm_storage_account.stg_func_app.name
 
   virtual_network_subnet_id = azurerm_subnet.snet_backend.id
 
@@ -40,6 +40,7 @@ resource "azurerm_linux_function_app" "func_todo_backend" {
     application_stack {
       python_version = "3.12"
     }
+    ip_restriction_default_action = "Deny"
     always_on              = true
     vnet_route_all_enabled = true
     ip_restriction {
@@ -53,7 +54,6 @@ resource "azurerm_linux_function_app" "func_todo_backend" {
       ip_address = "136.255.102.82/32"
       priority = 100
     }
-    
   }
 
   app_settings = {
@@ -67,7 +67,7 @@ resource "azurerm_linux_function_app" "func_todo_backend" {
     "DATABASE_URL" = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.connection_string_db.versionless_id})"
 
     "ALLOWED_ORIGINS"                  = "https://${azurerm_linux_function_app.func_todo_frontend.name}.azurewebsites.net"
-    "AzureWebJobsStorage__accountName" = azurerm_storage_account.stg_func_app_bk.name
+    "AzureWebJobsStorage__accountName" = azurerm_storage_account.stg_func_app.name
 
     "env" = var.env
   }
@@ -86,9 +86,8 @@ resource "azurerm_linux_function_app" "func_todo_frontend" {
   location            = azurerm_resource_group.rg_todo_func_app.location
 
   storage_uses_managed_identity = true
-  storage_account_name          = azurerm_storage_account.stg_func_app_fr.name
+  storage_account_name          = azurerm_storage_account.stg_func_app.name
 
-  public_network_access_enabled = false
   virtual_network_subnet_id = azurerm_subnet.snet_frontend.id
 
   identity {
@@ -100,6 +99,19 @@ resource "azurerm_linux_function_app" "func_todo_frontend" {
     }
     always_on = true
     vnet_route_all_enabled = true
+    ip_restriction_default_action = "Deny"
+
+    ip_restriction {
+      action      = "Allow"
+      service_tag = "AzureCloud"
+      priority    = 100
+      name        = "AllowAzureCloud"
+    }
+    ip_restriction {
+      action = "Allow"
+      ip_address = "136.255.102.82/32"
+      priority = 100
+    }
   }
 
   app_settings = {
@@ -112,7 +124,7 @@ resource "azurerm_linux_function_app" "func_todo_frontend" {
 
     "WEBSITE_VNET_ROUTE_ALL" = "1"
 
-    "AzureWebJobsStorage__accountName" = azurerm_storage_account.stg_func_app_fr.name
+    "AzureWebJobsStorage__accountName" = azurerm_storage_account.stg_func_app.name
   }
 
   lifecycle {
