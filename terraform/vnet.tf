@@ -70,10 +70,7 @@ resource "azurerm_subnet" "snet_db" {
         actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
       }
     }
-    depends_on = [
-    azurerm_subnet.snet_backend,
-    azurerm_subnet.snet_frontend
-  ]
+    depends_on = [azurerm_subnet.snet_backend]
 }
 
 #
@@ -156,15 +153,15 @@ resource "azurerm_private_dns_zone_virtual_network_link" "kv_dns_link" {
 #
 # Private endpoints
 #
-# resource "azurerm_private_endpoint" "pep_stg_backend" {
+# resource "azurerm_private_endpoint" "pep_stg" {
 #   name = "pep-stg-backend-${var.env}"
 #   subnet_id = azurerm_subnet.snet_stg.id
 #   location = azurerm_resource_group.rg_vnet.location
 #   resource_group_name = azurerm_resource_group.rg_vnet.name
 #   private_service_connection {
-#     name = "service-conn-backend-stg-${var.env}"
+#     name = "service-conn-apps-stg-${var.env}"
 #     is_manual_connection = false
-#     private_connection_resource_id = azurerm_storage_account.stg_func_app_bk.id
+#     private_connection_resource_id = azurerm_storage_account.stg_func_app.id
 #   }
 # }
 

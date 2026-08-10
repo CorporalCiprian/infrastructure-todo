@@ -29,12 +29,12 @@ resource "azurerm_role_assignment" "github_principal" {
 
 resource "azurerm_role_assignment" "backend_app_storage" {
     principal_id = azurerm_linux_function_app.func_todo_backend.identity[0].principal_id
-    scope = azurerm_storage_account.stg_func_app_bk.id
+    scope = azurerm_storage_account.stg_func_app.id
     role_definition_name = "Storage Blob Data Owner"
 }
 
 resource "azurerm_role_assignment" "frontend_app_storage" {
     principal_id = azurerm_linux_function_app.func_todo_frontend.identity[0].principal_id
-    scope = azurerm_storage_account.stg_func_app_fr.id
+    scope = azurerm_storage_account.stg_func_app.id
     role_definition_name = "Storage Blob Data Owner"
 }
