@@ -3,7 +3,7 @@
 #
 resource "azurerm_resource_group" "rg_todo_db" {
   name = "rg-${var.project_name}-db-${var.env}"
-  location = var.location
+  location = "germanywestcentral"
 }
 
 #

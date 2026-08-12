@@ -10,7 +10,7 @@ resource "azurerm_resource_group" "rg_todo_kv" {
 # Key Vault
 #
 resource "azurerm_key_vault" "kv_todo" {
-  name                       = "kv-${var.project_name}-${var.env}v"
+  name                       = "kv-${var.project_name}-${var.env}gwc"
   location                   = azurerm_resource_group.rg_todo_kv.location
   resource_group_name        = azurerm_resource_group.rg_todo_kv.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id

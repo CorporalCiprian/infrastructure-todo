@@ -3,7 +3,7 @@
 #
 resource "azurerm_resource_group" "rg_vnet" {
     name = "rg-vnet-${var.env}"
-    location = var.location
+    location = "germanywestcentral"
 }
 
 #
@@ -70,9 +70,14 @@ resource "azurerm_subnet" "snet_db" {
         actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
       }
     }
-    depends_on = [azurerm_subnet.snet_backend]
 }
 
+# resource "azurerm_subnet" "snet_vm" {
+#   name = "snet-vm-${var.env}"
+#   resource_group_name = azurerm_resource_group.rg_vnet.name
+#   virtual_network_name = azurerm_virtual_network.vnet_todo.name
+#   address_prefixes = [cidrsubnet("10.0.0.0/25",3,4)]
+# }
 #
 # Private DNS
 #
@@ -168,6 +173,8 @@ resource "azurerm_private_endpoint" "pep_blob" {
     name = "dns-group-blob-${var.env}"
     private_dns_zone_ids = [azurerm_private_dns_zone.stg_blob_dns.id]
   }
+
+  depends_on = [ azurerm_private_dns_zone_virtual_network_link.stg_blob_dns_link ]
 }
 
 resource "azurerm_private_endpoint" "pep_file" {
@@ -185,6 +192,8 @@ resource "azurerm_private_endpoint" "pep_file" {
     name = "dns-group-file-${var.env}"
     private_dns_zone_ids = [azurerm_private_dns_zone.stg_file_dns.id]
   }
+
+  depends_on = [ azurerm_private_dns_zone_virtual_network_link.stg_file_dns_link, azurerm_private_endpoint.pep_blob ]
 }
 
 resource "azurerm_private_endpoint" "pep_queue" {
@@ -202,6 +211,8 @@ resource "azurerm_private_endpoint" "pep_queue" {
     name = "dns-group-queue-${var.env}"
     private_dns_zone_ids = [azurerm_private_dns_zone.stg_queue_dns.id]
   }
+
+  depends_on = [ azurerm_private_dns_zone_virtual_network_link.stg_queue_dns_link, azurerm_private_endpoint.pep_file ]
 }
 
 resource "azurerm_private_endpoint" "pep_table" {
@@ -219,6 +230,8 @@ resource "azurerm_private_endpoint" "pep_table" {
     name = "dns-group-table-${var.env}"
     private_dns_zone_ids = [azurerm_private_dns_zone.stg_table_dns.id]
   }
+
+  depends_on = [ azurerm_private_dns_zone_virtual_network_link.stg_table_dns_link, azurerm_private_endpoint.pep_queue ]
 }
 
 # resource "azurerm_private_endpoint" "pep_stg_frontend" {
@@ -248,6 +261,8 @@ resource "azurerm_private_endpoint" "pep_kv" {
     name = "dns-group-kv"
     private_dns_zone_ids = [azurerm_private_dns_zone.kv_private_dns.id]
   }
+
+  depends_on = [ azurerm_private_dns_zone_virtual_network_link.kv_dns_link ]
 }
 
 #
