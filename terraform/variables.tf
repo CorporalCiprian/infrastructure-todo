@@ -1,6 +1,6 @@
 variable "location" {
   type    = string
-  default = "francecentral"
+  default = "uaenorth"
 }
 
 # variable "func_asp_sku_name" {

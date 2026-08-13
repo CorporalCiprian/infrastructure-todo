@@ -70,7 +70,19 @@ resource "azurerm_subnet" "snet_db" {
         actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
       }
     }
+
+    lifecycle {
+      ignore_changes = [ service_endpoints ]
+    }
     depends_on = [azurerm_subnet.snet_backend]
+
+}
+
+resource "azurerm_subnet" "snet_vm" {
+  name = "snet-vm-${var.env}"
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+  virtual_network_name = azurerm_virtual_network.vnet_todo.name
+  address_prefixes = [cidrsubnet("10.0.0.0/25",3,4)]
 }
 
 #
@@ -168,6 +180,7 @@ resource "azurerm_private_endpoint" "pep_blob" {
     name = "dns-group-blob-${var.env}"
     private_dns_zone_ids = [azurerm_private_dns_zone.stg_blob_dns.id]
   }
+  depends_on = [ azurerm_private_dns_zone_virtual_network_link.stg_blob_dns_link ]
 }
 
 resource "azurerm_private_endpoint" "pep_file" {
@@ -185,6 +198,7 @@ resource "azurerm_private_endpoint" "pep_file" {
     name = "dns-group-file-${var.env}"
     private_dns_zone_ids = [azurerm_private_dns_zone.stg_file_dns.id]
   }
+  depends_on = [ azurerm_private_dns_zone_virtual_network_link.stg_file_dns_link, azurerm_private_endpoint.pep_blob ]
 }
 
 resource "azurerm_private_endpoint" "pep_queue" {
@@ -202,6 +216,7 @@ resource "azurerm_private_endpoint" "pep_queue" {
     name = "dns-group-queue-${var.env}"
     private_dns_zone_ids = [azurerm_private_dns_zone.stg_queue_dns.id]
   }
+  depends_on = [ azurerm_private_dns_zone_virtual_network_link.stg_queue_dns_link, azurerm_private_endpoint.pep_file ]
 }
 
 resource "azurerm_private_endpoint" "pep_table" {
@@ -219,6 +234,7 @@ resource "azurerm_private_endpoint" "pep_table" {
     name = "dns-group-table-${var.env}"
     private_dns_zone_ids = [azurerm_private_dns_zone.stg_table_dns.id]
   }
+  depends_on = [ azurerm_private_dns_zone_virtual_network_link.stg_table_dns_link, azurerm_private_endpoint.pep_queue ]
 }
 
 # resource "azurerm_private_endpoint" "pep_stg_frontend" {
@@ -283,6 +299,52 @@ resource "azurerm_network_security_group" "nsg_db" {
   }
 }
 
+resource "azurerm_network_security_group" "nsg_vm" {
+  name = "nsg-vm-${var.env}"
+  location = azurerm_resource_group.rg_vnet.location
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+
+  security_rule {
+    name = "allowmyipaccess"
+    priority = 100
+    direction = "Inbound"
+    access = "Allow"
+    protocol = "*"
+    source_address_prefix = "136.255.102.82/32"
+    source_port_range = "*"
+    destination_port_range = "*"
+    destination_address_prefix = azurerm_public_ip.pip_runner.ip_address 
+  }
+
+  security_rule {
+    name = "denyallaccess"
+    priority = 4000
+    direction = "Inbound"
+    access = "Deny"
+    protocol = "*"
+    source_address_prefix = "*"
+    source_port_range = "*"
+    destination_port_range = "*"
+    destination_address_prefix = azurerm_public_ip.pip_runner.ip_address
+  }
+
+  security_rule {
+    name = "SSH"
+    priority = "101"
+    direction = "Inbound"
+    access = "Allow"
+    protocol = "Tcp"
+    source_address_prefix = "136.255.102.82/32"
+    source_port_range = "*"
+    destination_port_range = "22"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_network_interface_security_group_association" "nsg_link_vmnic" {
+  network_interface_id = azurerm_network_interface.nic_runner.id
+  network_security_group_id = azurerm_network_security_group.nsg_vm.id
+}
 resource "azurerm_subnet_network_security_group_association" "nsg_link_db" {
   subnet_id                 = azurerm_subnet.snet_db.id
   network_security_group_id = azurerm_network_security_group.nsg_db.id
