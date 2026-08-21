@@ -17,7 +17,7 @@ resource "azurerm_linux_virtual_machine" "vm_runner" {
   }
   source_image_reference {
     publisher = "Canonical"
-    offer     = "ubuntu-26_04-lts"
+    offer     = "ubuntu-24_04-lts"
     sku       = "server"
     version   = "latest"
   }
@@ -26,6 +26,8 @@ resource "azurerm_linux_virtual_machine" "vm_runner" {
     username = "adminuser"
     public_key = file("~/.ssh/id_rsa.pub")
   }
+
+  custom_data = filebase64("vm-cloud-init.yml")
 }
 
 resource "azurerm_public_ip" "pip_runner" {
