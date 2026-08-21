@@ -1,0 +1,276 @@
+#cloud-config
+groups:
+- sudo: [root, sys, adminuser]
+- cloud-users
+users:
+- default
+- name: runneruser
+  primary_group: cloud-users
+  sudo: "ALL=(ALL) NOPASSWD:ALL"
+packages:
+  - python
+  - npm
+  - nvm
+  - pip
+  - zip
+  - unzip
+  - curl
+  - tar
+
+write_files:
+- path: /home/adminuser/azure-creds.json
+  content: |
+    {
+      "tenantId":  "",
+      "clientId":  "",
+      "clientSecret":  ""
+    }
+  permissions: "0755"
+
+- path: /home/adminuser/scripts/check_idle_worker.sh
+  permissions: "0777"
+  content: |
+    #!/bin/bash
+    # check_idle_worker.sh
+    #
+    # This script continuously calculates the idle time based on the most recent modification
+    # of files in the actions-runner/_diag directory that begin with "Worker_".
+    # It outputs the idle time and, if a threshold (in minutes) is provided as a command-line argument,
+    # it will deallocate the VM if the idle time exceeds that threshold.
+    # 
+    # A grace period of 10 minutes after boot is used to prevent premature deallocation. 
+    #
+    # Usage:
+    #   ./check_idle_worker.sh [THRESHOLD_MINUTES] [--test]
+    #
+    # Example:
+    #   ./check_idle_worker.sh 30
+    # will deallocate the VM if idle for 30 minutes (after the 10-minute grace period).
+    #
+    # To run in test mode (i.e. only print status and show what would be done without actually deallocating):
+    #   ./check_idle_worker.sh 30 --test
+
+    #####################
+    # Configuration
+    #####################
+
+    # Path to the _diag folder (adjust if necessary)
+    DIAG_DIRS=(
+    "/home/adminuser/actions-runner-backend/_diag"
+    "/home/adminuser/actions-runner-frontend/_diag"
+    )
+
+    # Idle threshold in minutes; if set to 0, no deallocation will occur.
+    THRESHOLD_MINUTES=${1:-0}
+
+    # Grace period after boot (in minutes) during which idle checks are skipped.
+    GRACE_PERIOD_MINUTES=10
+
+    # Path to the service principal credentials file (required)
+    CREDENTIALS_FILE="/home/adminuser/azure-creds.json"
+
+    #####################
+    # Pre-flight Checks
+    #####################
+
+    # Ensure the credentials file exists.
+    if [ ! -f "$CREDENTIALS_FILE" ]; then
+      echo "Error: Credentials file $CREDENTIALS_FILE does not exist. Aborting."
+      exit 1
+    fi
+
+    VALID_DIRS=()
+    for dir in "${DIAG_DIRS[@]}"; do
+      if [ -d "$dir" ]; then
+        VALID_DIRS+=("$dir")
+      else
+        echo "dir doesn't exist"
+      fi
+    done
+
+    if [ ${#VALID_DIRS[@]} -eq 0 ]; then
+      echo "no valid dirs found"
+      exit 1
+    fi
+
+    # Retrieve VM metadata to dynamically set RESOURCE_GROUP and VM_NAME.
+    metadata=$(curl -s -H "Metadata:true" "http://169.254.169.254/metadata/instance?api-version=2021-02-01")
+    if [ -z "$metadata" ]; then
+      echo "Error: Unable to retrieve instance metadata."
+      exit 1
+    fi
+
+    RESOURCE_GROUP=$(echo "$metadata" | jq -r '.compute.resourceGroupName')
+    VM_NAME=$(echo "$metadata" | jq -r '.compute.name')
+    echo "Detected Resource Group: $RESOURCE_GROUP"
+    echo "Detected VM Name: $VM_NAME"
+
+    # Pre-flight Azure login.
+    echo "Performing Azure login using service principal credentials from $CREDENTIALS_FILE..."
+    if ! command -v jq &>/dev/null; then
+      echo "Error: 'jq' is required but not installed. Please install it (e.g., sudo apt-get install jq)."
+      exit 1
+    fi
+
+    az login --service-principal \
+      --username "$(jq -r '.clientId' "$CREDENTIALS_FILE")" \
+      --password "$(jq -r '.clientSecret' "$CREDENTIALS_FILE")" \
+      --tenant "$(jq -r '.tenantId' "$CREDENTIALS_FILE")"
+    if [ $? -ne 0 ]; then
+      echo "Azure login failed using service principal credentials. Aborting."
+      exit 1
+    fi
+    echo "Azure login successful."
+
+    #####################
+    # Optional Test Mode Flag
+    #####################
+
+    TEST_MODE=0
+    if [[ "$2" == "--test" ]]; then
+      TEST_MODE=1
+      echo "Test mode enabled. No deallocation will occur, but logs will indicate what would happen."
+    fi
+
+    #####################
+    # Functions
+    #####################
+
+    # Get uptime in minutes from /proc/uptime.
+    get_uptime_minutes() {
+      uptime_seconds=$(cut -d' ' -f1 /proc/uptime)
+      echo "scale=2; $uptime_seconds / 60" | bc
+    }
+
+    # Get the most recent modification time (in seconds since epoch) from Worker log files.
+    get_recent_mod_time() {
+      find "${VALID_DIRS[@]}" -type f -name "Worker_*.log" -printf '%T@\n' 2>/dev/null | sort -n | tail -1
+    }
+
+    #####################
+    # Main Loop
+    #####################
+
+    while true; do
+      current_time=$(date +%s)
+      uptime_minutes=$(get_uptime_minutes)
+      echo "[$(date)] System uptime: ${uptime_minutes} minutes"
+
+      # Skip idle check if within the grace period.
+      if (( $(echo "$uptime_minutes < $GRACE_PERIOD_MINUTES" | bc -l) )); then
+        echo "Within grace period (${GRACE_PERIOD_MINUTES} minutes). Skipping idle check."
+        sleep 60
+        continue
+      fi
+
+      # Get the most recent modification time among Worker logs.
+      recent_mod_time=$(get_recent_mod_time)
+      if [ -z "$recent_mod_time" ]; then
+        echo "No Worker log files found in dir. Unable to determine idle time."
+        sleep 60
+        continue
+      fi
+
+      # Convert recent_mod_time to an integer (seconds)
+      recent_mod_time=${recent_mod_time%.*}
+      idle_seconds=$(( current_time - recent_mod_time ))
+      idle_minutes=$(echo "scale=2; $idle_seconds / 60" | bc)
+      echo "[$(date)] Idle time based on Worker logs: ${idle_minutes} minutes"
+
+      # If a threshold is provided, check if deallocation is required.
+      if [ "$THRESHOLD_MINUTES" -gt 0 ]; then
+        idle_minutes_int=$(printf "%.0f" "$idle_minutes")
+        if [ "$idle_minutes_int" -ge "$THRESHOLD_MINUTES" ]; then
+          echo "Idle time ($idle_minutes_int minutes) exceeds threshold ($THRESHOLD_MINUTES minutes)."
+          if [ $TEST_MODE -eq 1 ]; then
+            echo "Test mode: would deallocate VM $VM_NAME in resource group $RESOURCE_GROUP now."
+          else
+            echo "Initiating deallocation..."
+            echo "Deallocating VM $VM_NAME in resource group $RESOURCE_GROUP..."
+            az vm deallocate --resource-group "$RESOURCE_GROUP" --name "$VM_NAME"
+            exit 0
+          fi
+        else
+          echo "Idle time ($idle_minutes_int minutes) is below the threshold. No deallocation."
+        fi
+      fi
+
+      sleep 60
+    done
+  
+
+- path: /home/adminuser/scripts/runner-start-backend.sh
+  permissions: "0777"
+  content: |
+    #!/bin/bash
+    PAT=yourpat
+    REPO="CorporalCiprian/backend-todo"
+
+    RUNNER_TOKEN=$(curl -sX POST -H "Authorization: token $PAT" \
+    -H "Accept: application/vnd.github.v3+json" \
+    "https://api.github.com/repos/$REPO/actions/runners/registration-token" | jq -r .token)
+    sudo mkdir /home/adminuser/actions-runner-backend 
+    cd /home/adminuser/actions-runner-backend 
+    sudo curl -o actions-runner-linux-x64-2.336.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.336.0/actions-runner-linux-x64-2.336.0.tar.gz 
+    sudo tar xzf ./actions-runner-linux-x64-2.336.0.tar.gz 
+    ./config.sh --url https://github.com/CorporalCiprian/backend-todo --token $RUNNER_TOKEN --name backend-runner-dev --unattended --replace 
+    sudo ./svc.sh install && sudo ./svc.sh start
+
+- path: /home/adminuser/scripts/runner-start-frontend.sh
+  permissions: "0777"
+  content: |
+    #!/bin/bash
+    PAT=yourpat
+    REPO="CorporalCiprian/frontend-todo"
+
+    RUNNER_TOKEN=$(curl -sX POST -H "Authorization: token $PAT" \
+    -H "Accept: application/vnd.github.v3+json" \
+    "https://api.github.com/repos/$REPO/actions/runners/registration-token" | jq -r .token)
+    sudo mkdir /home/adminuser/actions-runner-frontend 
+    cd /home/adminuser/actions-runner-frontend 
+    sudo curl -o actions-runner-linux-x64-2.336.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.336.0/actions-runner-linux-x64-2.336.0.tar.gz 
+    sudo tar xzf ./actions-runner-linux-x64-2.336.0.tar.gz 
+    ./config.sh --url https://github.com/CorporalCiprian/frontend-todo --token $RUNNER_TOKEN --name frontend-runner-dev --unattended --replace 
+    sudo ./svc.sh install && sudo ./svc.sh start
+- path: /etc/systemd/system/idle-check.service
+  content: |
+    [Unit]
+    Description=Idle Timeout Checker for GitHub Actions Runner
+    After=network.target
+
+    [Service]
+    Type=simple
+    # Adjust the path and threshold (30 minutes in this example) as needed.
+    ExecStart=/home/adminuser/scripts/check_idle_worker.sh 30
+    Restart=always
+    User=adminuser
+    Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+    [Install]
+    WantedBy=multi-user.target
+
+runcmd:
+- sudo apt update && sudo apt upgrade -y
+- sudo apt install python3 python3-pip python3-venv python3-dev -y  
+- chown -R adminuser /home/adminuser
+- curl -fsSL 'https://azurecliprod.blob.core.windows.net/$root/deb_install.sh' | sudo bash
+- sudo -u adminuser /home/adminuser/scripts/runner-start-backend.sh
+
+- sudo -u adminuser /home/adminuser/scripts/runner-start-frontend.sh
+
+- |
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.6/install.sh | bash
+  \. "$HOME/.nvm/nvm.sh"
+  nvm install 24
+- |
+  chmod +x /home/adminuser/scripts/check_idle_worker.sh
+  systemctl daemon-reload
+  systemctl enable idle-check.service
+  systemctl start idle-check.service
+
+- |
+  curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
+  sudo mv microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg
+  sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-ubuntu-$(lsb_release -cs 2>/dev/null)-prod $(lsb_release -cs 2>/dev/null) main" > /etc/apt/sources.list.d/dotnetdev.list'
+  sudo apt-get update
+  sudo apt-get install azure-functions-core-tools-4

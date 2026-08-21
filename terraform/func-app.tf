@@ -13,7 +13,7 @@ resource "azurerm_service_plan" "asp_func_apps" {
   name                = "asp-${var.project_name}-${var.env}"
   resource_group_name = azurerm_resource_group.rg_todo_func_app.name
   location            = azurerm_resource_group.rg_todo_func_app.location
-  sku_name            = "B2"
+  sku_name            = "S2"
   os_type             = "Linux"
 }
 

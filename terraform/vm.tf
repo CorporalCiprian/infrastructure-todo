@@ -26,6 +26,8 @@ resource "azurerm_linux_virtual_machine" "vm_runner" {
     username = "adminuser"
     public_key = file("~/.ssh/id_rsa.pub")
   }
+
+  custom_data = filebase64("vm-cloud-init.yml")
 }
 
 resource "azurerm_public_ip" "pip_runner" {
