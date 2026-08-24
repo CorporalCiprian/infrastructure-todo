@@ -313,7 +313,7 @@ resource "azurerm_network_security_group" "nsg_vm" {
     source_address_prefix = "136.255.102.82/32"
     source_port_range = "*"
     destination_port_range = "*"
-    destination_address_prefix = azurerm_public_ip.pip_runner.ip_address 
+    destination_address_prefix = azurerm_subnet.snet_vm.address_prefixes[0] 
   }
 
   security_rule {
@@ -325,7 +325,7 @@ resource "azurerm_network_security_group" "nsg_vm" {
     source_address_prefix = "*"
     source_port_range = "*"
     destination_port_range = "*"
-    destination_address_prefix = azurerm_public_ip.pip_runner.ip_address
+    destination_address_prefix = azurerm_subnet.snet_vm.address_prefixes[0]
   }
 
   security_rule {
@@ -353,10 +353,10 @@ resource "azurerm_network_security_group" "nsg_vm" {
   }
 }
 
-resource "azurerm_network_interface_security_group_association" "nsg_link_vmnic" {
-  network_interface_id = azurerm_network_interface.nic_runner.id
-  network_security_group_id = azurerm_network_security_group.nsg_vm.id
-}
+# resource "azurerm_network_interface_security_group_association" "nsg_link_vmnic" {
+#   network_interface_id = azurerm_linux_virtual_machine_scale_set.vmss_runner.network_interface.id
+#   network_security_group_id = azurerm_network_security_group.nsg_vm.id
+# }
 resource "azurerm_subnet_network_security_group_association" "nsg_link_db" {
   subnet_id                 = azurerm_subnet.snet_db.id
   network_security_group_id = azurerm_network_security_group.nsg_db.id

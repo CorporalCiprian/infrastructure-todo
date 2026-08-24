@@ -41,7 +41,7 @@ resource "azurerm_role_assignment" "frontend_app_storage" {
 
 resource "azurerm_role_assignment" "runner_trigger_vm" {
   principal_id = azurerm_linux_function_app.func_app_runner_trigger.identity[0].principal_id
-  scope = azurerm_linux_virtual_machine.vm_runner.id
+  scope = azurerm_linux_virtual_machine_scale_set.vmss_runner.id
   role_definition_name = "Virtual Machine Contributor"
 }
 

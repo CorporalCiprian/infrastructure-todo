@@ -102,6 +102,8 @@ write_files:
 
     RESOURCE_GROUP=$(echo "$metadata" | jq -r '.compute.resourceGroupName')
     VM_NAME=$(echo "$metadata" | jq -r '.compute.name')
+    VMSS_NAME=$(echo "$metadata" | jq -r '.compute.vmScaleSetName // empty')
+    RESOURCE_ID=$(echo "$metadata" | jq -r '.compute.resourceId')
     echo "Detected Resource Group: $RESOURCE_GROUP"
     echo "Detected VM Name: $VM_NAME"
 
@@ -186,8 +188,15 @@ write_files:
             echo "Test mode: would deallocate VM $VM_NAME in resource group $RESOURCE_GROUP now."
           else
             echo "Initiating deallocation..."
-            echo "Deallocating VM $VM_NAME in resource group $RESOURCE_GROUP..."
-            az vm deallocate --resource-group "$RESOURCE_GROUP" --name "$VM_NAME"
+            if [ -n "$VMSS_NAME" ]; then
+              # Extract the Instance ID from the end of the Resource ID path
+              INSTANCE_ID=$(basename "$RESOURCE_ID")
+              echo "Deallocating VMSS instance $INSTANCE_ID in scale set $VMSS_NAME..."
+              az vmss deallocate --resource-group "$RESOURCE_GROUP" --name "$VMSS_NAME" --instance-ids "$INSTANCE_ID"
+            else
+              echo "Deallocating standalone VM $VM_NAME in resource group $RESOURCE_GROUP..."
+              az vm deallocate --resource-group "$RESOURCE_GROUP" --name "$VM_NAME"
+            fi
             exit 0
           fi
         else
