@@ -6,34 +6,14 @@ resource "azurerm_resource_group" "rg_todo_db" {
   location = var.location
 }
 
-#
-# Database server
-#
-resource "azurerm_postgresql_flexible_server" "db_server" {
-  name                   = "${var.project_name}-pg-server-${var.env}"
-  resource_group_name    = azurerm_resource_group.rg_todo_db.name
-  location               = azurerm_resource_group.rg_todo_db.location
-  administrator_login    = "postgres"
-  administrator_password = azurerm_key_vault_secret.db_pass.value
-  sku_name = "B_Standard_B1ms"
-  version = "16"
-
-  delegated_subnet_id = azurerm_subnet.snet_db.id
-
-  private_dns_zone_id = azurerm_private_dns_zone.db_private_dns.id
-
-  public_network_access_enabled = false
-
-  lifecycle {
-    ignore_changes = [ zone ]
-  }
-
-}
-
-#
-# Postgresql Database
-#
-resource "azurerm_postgresql_flexible_server_database" "todo_db" {
-  name      = "${var.project_name}-db-${var.env}"
-  server_id = azurerm_postgresql_flexible_server.db_server.id
+module "db_module" {
+  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/psqlbd"
+  rgname =  azurerm_resource_group.rg_todo_db.name
+  location = azurerm_resource_group.rg_todo_db.location
+  adminpass = azurerm_key_vault_secret.db_pass.value
+  subnet_id = azurerm_subnet.snet_db.id
+  dnszone = azurerm_private_dns_zone.db_private_dns.id
+  adminname = "postgres"
+  sku = "B_Standard_B1ms"
+  netaccess = false
 }

@@ -28,7 +28,7 @@ resource "azurerm_linux_function_app" "func_todo_backend" {
   service_plan_id = azurerm_service_plan.asp_func_apps.id
 
   storage_uses_managed_identity = true
-  storage_account_name          = azurerm_storage_account.stg_func_app.name
+  storage_account_name          = module.stg_func_app.name
 
   virtual_network_subnet_id = azurerm_subnet.snet_backend.id
 
@@ -62,7 +62,7 @@ resource "azurerm_linux_function_app" "func_todo_backend" {
     "DATABASE_URL" = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.connection_string_db.versionless_id})"
 
     "ALLOWED_ORIGINS"                  = "https://${azurerm_linux_function_app.func_todo_frontend.name}.azurewebsites.net"
-    "AzureWebJobsStorage__accountName" = azurerm_storage_account.stg_func_app.name
+    "AzureWebJobsStorage__accountName" = module.stg_func_app.name
 
     "env" = var.env
   }
@@ -81,7 +81,7 @@ resource "azurerm_linux_function_app" "func_todo_frontend" {
   location            = azurerm_resource_group.rg_todo_func_app.location
 
   storage_uses_managed_identity = true
-  storage_account_name          = azurerm_storage_account.stg_func_app.name
+  storage_account_name          = module.stg_func_app.name
 
   virtual_network_subnet_id = azurerm_subnet.snet_frontend.id
 
@@ -113,7 +113,7 @@ resource "azurerm_linux_function_app" "func_todo_frontend" {
 
     "WEBSITE_VNET_ROUTE_ALL" = "1"
 
-    "AzureWebJobsStorage__accountName" = azurerm_storage_account.stg_func_app.name
+    "AzureWebJobsStorage__accountName" = module.stg_func_app.name
   }
 
   lifecycle {
@@ -128,7 +128,7 @@ resource "azurerm_linux_function_app" "func_app_runner_trigger" {
   location            = azurerm_resource_group.rg_todo_func_app.location
 
   storage_uses_managed_identity = true
-  storage_account_name          = azurerm_storage_account.stg_func_app.name
+  storage_account_name          = module.stg_func_app.name
 
   virtual_network_subnet_id = azurerm_subnet.snet_backend.id
 
@@ -151,7 +151,7 @@ resource "azurerm_linux_function_app" "func_app_runner_trigger" {
     "Azure_Subscription_Id" = data.azurerm_client_config.current.subscription_id
     "Vm_Resource_Group" = azurerm_resource_group.rg_vm.name
     "Vm_Name" = azurerm_linux_virtual_machine.vm_runner.name
-    "AzureWebJobsStorage__accountName" = azurerm_storage_account.stg_func_app.name
+    "AzureWebJobsStorage__accountName" = module.stg_func_app.name
 
     "env" = var.env
   }

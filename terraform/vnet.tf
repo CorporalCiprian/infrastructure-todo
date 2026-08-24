@@ -173,7 +173,7 @@ resource "azurerm_private_endpoint" "pep_blob" {
   private_service_connection {
     name = "service-conn-apps-blob-${var.env}"
     is_manual_connection = false
-    private_connection_resource_id = azurerm_storage_account.stg_func_app.id
+    private_connection_resource_id = module.stg_func_app.id
     subresource_names = ["blob"]
   }
   private_dns_zone_group {
@@ -191,7 +191,7 @@ resource "azurerm_private_endpoint" "pep_file" {
   private_service_connection {
     name = "service-conn-apps-file-${var.env}"
     is_manual_connection = false
-    private_connection_resource_id = azurerm_storage_account.stg_func_app.id
+    private_connection_resource_id = module.stg_func_app.id
     subresource_names = ["file"]
   }
   private_dns_zone_group {
@@ -209,7 +209,7 @@ resource "azurerm_private_endpoint" "pep_queue" {
   private_service_connection {
     name = "service-conn-apps-queue-${var.env}"
     is_manual_connection = false
-    private_connection_resource_id = azurerm_storage_account.stg_func_app.id
+    private_connection_resource_id = module.stg_func_app.id
     subresource_names = ["queue"]
   }
   private_dns_zone_group {
@@ -227,7 +227,7 @@ resource "azurerm_private_endpoint" "pep_table" {
   private_service_connection {
     name = "service-conn-apps-table-${var.env}"
     is_manual_connection = false
-    private_connection_resource_id = azurerm_storage_account.stg_func_app.id
+    private_connection_resource_id = module.stg_func_app.id
     subresource_names = ["table"]
   }
   private_dns_zone_group {
@@ -257,7 +257,7 @@ resource "azurerm_private_endpoint" "pep_kv" {
   private_service_connection {
     name = "service-conn-kv"
     is_manual_connection = false
-    private_connection_resource_id = azurerm_key_vault.kv_todo.id
+    private_connection_resource_id = module.key_vault.id
     subresource_names = ["vault"]
   }
   private_dns_zone_group {

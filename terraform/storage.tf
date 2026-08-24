@@ -6,16 +6,10 @@ resource "azurerm_resource_group" "rg_todo_stg" {
   location = var.location
 }
 
-#
-# Storage accounts
-#
-resource "azurerm_storage_account" "stg_func_app" {
-  name = "stg${var.project_name}${var.env}"
-  resource_group_name = azurerm_resource_group.rg_todo_stg.name
+module "stg_func_app" {
+  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/stg"
+  rgname = azurerm_resource_group.rg_todo_stg.name
   location = azurerm_resource_group.rg_todo_stg.location
-  account_tier    = "Standard"
-  account_replication_type  = "LRS"
-  public_network_access_enabled = false
 }
 
 # resource "azurerm_storage_account" "stg_func_app_fr" {
