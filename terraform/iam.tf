@@ -10,13 +10,13 @@ resource "azurerm_role_assignment" "github_principal_kv" {
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_role_assignment" "func_app_role_backend" {
-    principal_id = azurerm_linux_function_app.func_todo_backend.identity[0].principal_id
+    principal_id = module.func_app_backend.principal_id
     scope = module.key_vault.id
     role_definition_name = "Key Vault Secrets Officer"
 }
 
 resource "azurerm_role_assignment" "func_app_role_frontend" {
-    principal_id = azurerm_linux_function_app.func_todo_frontend.identity[0].principal_id
+    principal_id = module.func_app_frontend.principal_id
     scope = module.key_vault.id
     role_definition_name = "Key Vault Secrets Officer"
 }
@@ -28,25 +28,25 @@ resource "azurerm_role_assignment" "github_principal" {
 }
 
 resource "azurerm_role_assignment" "backend_app_storage" {
-    principal_id = azurerm_linux_function_app.func_todo_backend.identity[0].principal_id
+    principal_id = module.func_app_backend.principal_id
     scope = module.stg_func_app.id
     role_definition_name = "Storage Blob Data Owner"
 }
 
 resource "azurerm_role_assignment" "frontend_app_storage" {
-    principal_id = azurerm_linux_function_app.func_todo_frontend.identity[0].principal_id
+    principal_id = module.func_app_frontend.principal_id
     scope = module.stg_func_app.id
     role_definition_name = "Storage Blob Data Owner"
 }
 
 resource "azurerm_role_assignment" "runner_trigger_vm" {
-  principal_id = azurerm_linux_function_app.func_app_runner_trigger.identity[0].principal_id
+  principal_id = module.func_app_runner.principal_id
   scope = azurerm_linux_virtual_machine.vm_runner.id
   role_definition_name = "Virtual Machine Contributor"
 }
 
 resource "azurerm_role_assignment" "runner_trigger_storage" {
-  principal_id = azurerm_linux_function_app.func_app_runner_trigger.identity[0].principal_id
+  principal_id = module.func_app_runner.principal_id
   scope = module.stg_func_app.id
   role_definition_name = "Storage Blob Data Owner"
 }
