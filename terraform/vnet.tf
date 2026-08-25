@@ -85,6 +85,32 @@ resource "azurerm_subnet" "snet_vm" {
   address_prefixes = [cidrsubnet("10.0.0.0/25",3,4)]
 }
 
+resource "azurerm_subnet" "snet_bastion" {
+  name = "AzureBastionSubnet"
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+  virtual_network_name = azurerm_virtual_network.vnet_todo.name
+  address_prefixes = [cidrsubnet("10.0.0.0/25",3,5)]
+}
+
+resource "azurerm_public_ip" "bastion_pip" {
+  name                = "bastion-pip"
+  location            = azurerm_resource_group.rg_vnet.location
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_bastion_host" "bastion_host" {
+  name = "bastion-runner"
+  location = azurerm_resource_group.rg_vnet.location
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+
+  ip_configuration {
+    name = "ip-config-bastion"
+    subnet_id = azurerm_subnet.snet_bastion.id
+    public_ip_address_id = azurerm_public_ip.bastion_pip.id
+  }
+}
 #
 # Private DNS
 #

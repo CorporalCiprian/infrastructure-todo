@@ -13,7 +13,7 @@ resource "azurerm_service_plan" "asp_func_apps" {
   name                = "asp-${var.project_name}-${var.env}"
   resource_group_name = azurerm_resource_group.rg_todo_func_app.name
   location            = azurerm_resource_group.rg_todo_func_app.location
-  sku_name            = "S3"
+  sku_name            = "P1v2"
   os_type             = "Linux"
 }
 
@@ -150,7 +150,7 @@ resource "azurerm_linux_function_app" "func_app_runner_trigger" {
     "SCM_DO_BUILD_DURING_DEPLOYMENT" = "true"
     "Azure_Subscription_Id" = data.azurerm_client_config.current.subscription_id
     "Vm_Resource_Group" = azurerm_resource_group.rg_vm.name
-    "Vm_Name" = azurerm_linux_virtual_machine_scale_set.vmss_runner.name
+    "Vm_Name" = "${azurerm_linux_virtual_machine_scale_set.vmss_runner.name}000001"
     "AzureWebJobsStorage__accountName" = azurerm_storage_account.stg_func_app.name
 
     "env" = var.env
