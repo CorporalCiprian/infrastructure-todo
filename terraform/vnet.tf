@@ -88,76 +88,52 @@ resource "azurerm_subnet" "snet_vm" {
 #
 # Private DNS
 #
-resource "azurerm_private_dns_zone" "db_private_dns" {
-  name="privatelink.postgres.database.azure.com"
-  resource_group_name = azurerm_resource_group.rg_vnet.name
+module "db_dns" {
+  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/privateDNS"
+  dnsname = "privatelink.postgres.database.azure.com"
+  rgname = azurerm_resource_group.rg_vnet.name
+  linkname = "db-dns-link"
+  vnetid = azurerm_virtual_network.vnet_todo.id
 }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "db_dns_link" {
-  name                = "db-dns-link-${var.env}"
-  resource_group_name = azurerm_resource_group.rg_vnet.name
-  private_dns_zone_name = azurerm_private_dns_zone.db_private_dns.name
-  virtual_network_id = azurerm_virtual_network.vnet_todo.id
+module "kv_dns" {
+  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/privateDNS"
+  dnsname = "privatelink.vaultcore.azure.net"
+  rgname = azurerm_resource_group.rg_vnet.name
+  linkname = "kv-dns-link"
+  vnetid = azurerm_virtual_network.vnet_todo.id
 }
 
-resource "azurerm_private_dns_zone" "kv_private_dns" {
-  name="privatelink.vaultcore.azure.net"
-  resource_group_name = azurerm_resource_group.rg_vnet.name
+module "blob_dns" {
+  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/privateDNS"
+  dnsname = "privatelink.blob.core.windows.net"
+  rgname = azurerm_resource_group.rg_vnet.name
+  linkname = "blob-dns-link"
+  vnetid = azurerm_virtual_network.vnet_todo.id
 }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "kv_dns_link" {
-  name                = "kv-dns-link-${var.env}"
-  resource_group_name = azurerm_resource_group.rg_vnet.name
-  private_dns_zone_name = azurerm_private_dns_zone.kv_private_dns.name
-  virtual_network_id = azurerm_virtual_network.vnet_todo.id
+module "file_dns" {
+  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/privateDNS"
+  dnsname = "privatelink.file.core.windows.net"
+  rgname = azurerm_resource_group.rg_vnet.name
+  linkname = "file-dns-link"
+  vnetid = azurerm_virtual_network.vnet_todo.id
 }
 
-resource "azurerm_private_dns_zone" "stg_blob_dns" {
-  name="privatelink.blob.core.windows.net"
-  resource_group_name = azurerm_resource_group.rg_vnet.name
+module "queue_dns" {
+  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/privateDNS"
+  dnsname = "privatelink.queue.core.windows.net"
+  rgname = azurerm_resource_group.rg_vnet.name
+  linkname = "queue-dns-link"
+  vnetid = azurerm_virtual_network.vnet_todo.id
 }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "stg_blob_dns_link" {
-  name                = "blob-dns-link-${var.env}"
-  resource_group_name = azurerm_resource_group.rg_vnet.name
-  private_dns_zone_name = azurerm_private_dns_zone.stg_blob_dns.name
-  virtual_network_id = azurerm_virtual_network.vnet_todo.id
-}
-
-resource "azurerm_private_dns_zone" "stg_file_dns" {
-  name="privatelink.file.core.windows.net"
-  resource_group_name = azurerm_resource_group.rg_vnet.name
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "stg_file_dns_link" {
-  name                = "file-dns-link-${var.env}"
-  resource_group_name = azurerm_resource_group.rg_vnet.name
-  private_dns_zone_name = azurerm_private_dns_zone.stg_file_dns.name
-  virtual_network_id = azurerm_virtual_network.vnet_todo.id
-}
-
-resource "azurerm_private_dns_zone" "stg_queue_dns" {
-  name="privatelink.queue.core.windows.net"
-  resource_group_name = azurerm_resource_group.rg_vnet.name
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "stg_queue_dns_link" {
-  name                = "queue-dns-link-${var.env}"
-  resource_group_name = azurerm_resource_group.rg_vnet.name
-  private_dns_zone_name = azurerm_private_dns_zone.stg_queue_dns.name
-  virtual_network_id = azurerm_virtual_network.vnet_todo.id
-}
-
-resource "azurerm_private_dns_zone" "stg_table_dns" {
-  name="privatelink.table.core.windows.net"
-  resource_group_name = azurerm_resource_group.rg_vnet.name
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "stg_table_dns_link" {
-  name                = "table-dns-link-${var.env}"
-  resource_group_name = azurerm_resource_group.rg_vnet.name
-  private_dns_zone_name = azurerm_private_dns_zone.stg_table_dns.name
-  virtual_network_id = azurerm_virtual_network.vnet_todo.id
+module "table_dns" {
+  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/privateDNS"
+  dnsname = "privatelink.table.core.windows.net"
+  rgname = azurerm_resource_group.rg_vnet.name
+  linkname = "table-dns-link"
+  vnetid = azurerm_virtual_network.vnet_todo.id
 }
 
 
@@ -165,76 +141,56 @@ resource "azurerm_private_dns_zone_virtual_network_link" "stg_table_dns_link" {
 #
 # Private endpoints
 #
-resource "azurerm_private_endpoint" "pep_blob" {
-  name = "pep-blob-${var.env}"
+module "pep_blob" {
+  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/private_endpoints"
+  pepname = "pep-blob-${var.env}"
   subnet_id = azurerm_subnet.snet_stg.id
   location = azurerm_resource_group.rg_vnet.location
-  resource_group_name = azurerm_resource_group.rg_vnet.name
-  private_service_connection {
-    name = "service-conn-apps-blob-${var.env}"
-    is_manual_connection = false
-    private_connection_resource_id = module.stg_func_app.id
-    subresource_names = ["blob"]
-  }
-  private_dns_zone_group {
-    name = "dns-group-blob-${var.env}"
-    private_dns_zone_ids = [azurerm_private_dns_zone.stg_blob_dns.id]
-  }
-  depends_on = [ azurerm_private_dns_zone_virtual_network_link.stg_blob_dns_link ]
+  rgname = azurerm_resource_group.rg_vnet.name
+  connectionname = "service-conn-apps-blob-${var.env}"
+  connectionid = module.stg_func_app.id
+  subresource_names = ["blob"]
+  dnsgroupname = "dns-group-blob-${var.env}"
+  dnszoneids = [module.blob_dns.dns_id]
 }
 
-resource "azurerm_private_endpoint" "pep_file" {
-  name = "pep-file-${var.env}"
+module "pep_file" {
+  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/private_endpoints"
+  pepname = "pep-file-${var.env}"
   subnet_id = azurerm_subnet.snet_stg.id
   location = azurerm_resource_group.rg_vnet.location
-  resource_group_name = azurerm_resource_group.rg_vnet.name
-  private_service_connection {
-    name = "service-conn-apps-file-${var.env}"
-    is_manual_connection = false
-    private_connection_resource_id = module.stg_func_app.id
-    subresource_names = ["file"]
-  }
-  private_dns_zone_group {
-    name = "dns-group-file-${var.env}"
-    private_dns_zone_ids = [azurerm_private_dns_zone.stg_file_dns.id]
-  }
-  depends_on = [ azurerm_private_dns_zone_virtual_network_link.stg_file_dns_link, azurerm_private_endpoint.pep_blob ]
+  rgname = azurerm_resource_group.rg_vnet.name
+  connectionname = "service-conn-apps-file-${var.env}"
+  connectionid = module.stg_func_app.id
+  subresource_names = ["file"]
+  dnsgroupname = "dns-group-file-${var.env}"
+  dnszoneids = [module.file_dns.dns_id]
 }
 
-resource "azurerm_private_endpoint" "pep_queue" {
-  name = "pep-queue-${var.env}"
+module "pep_queue" {
+  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/private_endpoints"
+  pepname = "pep-queue-${var.env}"
   subnet_id = azurerm_subnet.snet_stg.id
   location = azurerm_resource_group.rg_vnet.location
-  resource_group_name = azurerm_resource_group.rg_vnet.name
-  private_service_connection {
-    name = "service-conn-apps-queue-${var.env}"
-    is_manual_connection = false
-    private_connection_resource_id = module.stg_func_app.id
-    subresource_names = ["queue"]
-  }
-  private_dns_zone_group {
-    name = "dns-group-queue-${var.env}"
-    private_dns_zone_ids = [azurerm_private_dns_zone.stg_queue_dns.id]
-  }
-  depends_on = [ azurerm_private_dns_zone_virtual_network_link.stg_queue_dns_link, azurerm_private_endpoint.pep_file ]
+  rgname = azurerm_resource_group.rg_vnet.name
+  connectionname = "service-conn-apps-queue-${var.env}"
+  connectionid = module.stg_func_app.id
+  subresource_names = ["queue"]
+  dnsgroupname = "dns-group-queue-${var.env}"
+  dnszoneids = [module.queue_dns.dns_id]
 }
 
-resource "azurerm_private_endpoint" "pep_table" {
-  name = "pep-table-${var.env}"
+module "pep_table" {
+  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/private_endpoints"
+  pepname = "pep-table-${var.env}"
   subnet_id = azurerm_subnet.snet_stg.id
   location = azurerm_resource_group.rg_vnet.location
-  resource_group_name = azurerm_resource_group.rg_vnet.name
-  private_service_connection {
-    name = "service-conn-apps-table-${var.env}"
-    is_manual_connection = false
-    private_connection_resource_id = module.stg_func_app.id
-    subresource_names = ["table"]
-  }
-  private_dns_zone_group {
-    name = "dns-group-table-${var.env}"
-    private_dns_zone_ids = [azurerm_private_dns_zone.stg_table_dns.id]
-  }
-  depends_on = [ azurerm_private_dns_zone_virtual_network_link.stg_table_dns_link, azurerm_private_endpoint.pep_queue ]
+  rgname = azurerm_resource_group.rg_vnet.name
+  connectionname = "service-conn-apps-table-${var.env}"
+  connectionid = module.stg_func_app.id
+  subresource_names = ["table"]
+  dnsgroupname = "dns-group-table-${var.env}"
+  dnszoneids = [module.table_dns.dns_id]
 }
 
 # resource "azurerm_private_endpoint" "pep_stg_frontend" {
@@ -249,21 +205,17 @@ resource "azurerm_private_endpoint" "pep_table" {
 #   }
 # }
 
-resource "azurerm_private_endpoint" "pep_kv" {
-  name = "pep-kv"
+module "pep_kv" {
+  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/private_endpoints"
+  pepname = "pep-kv-${var.env}"
   subnet_id = azurerm_subnet.snet_stg.id
   location = azurerm_resource_group.rg_vnet.location
-  resource_group_name = azurerm_resource_group.rg_vnet.name
-  private_service_connection {
-    name = "service-conn-kv"
-    is_manual_connection = false
-    private_connection_resource_id = module.key_vault.id
-    subresource_names = ["vault"]
-  }
-  private_dns_zone_group {
-    name = "dns-group-kv"
-    private_dns_zone_ids = [azurerm_private_dns_zone.kv_private_dns.id]
-  }
+  rgname = azurerm_resource_group.rg_vnet.name
+  connectionname = "service-conn-apps-kv-${var.env}"
+  connectionid = module.stg_func_app.id
+  subresource_names = ["vault"]
+  dnsgroupname = "dns-group-kv-${var.env}"
+  dnszoneids = [module.kv_dns.dns_id]
 }
 
 #
@@ -353,6 +305,48 @@ resource "azurerm_network_security_group" "nsg_vm" {
   }
 }
 
+resource "azurerm_network_security_group" "nsg_func_apps" {
+  name = "nsg-func-apps-${var.env}"
+  location = azurerm_resource_group.rg_vnet.location
+  resource_group_name = azurerm_resource_group.rg_vnet.name
+
+  security_rule {
+    name = "denyallaccess"
+    priority = "4000"
+    direction = "Inbound"
+    access = "Deny"
+    protocol = "*"
+    source_address_prefix = "*"
+    source_port_range = "*"
+    destination_port_range = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name = "allowmyip"
+    priority = "100"
+    direction = "Inbound"
+    access = "Allow"
+    protocol = "*"
+    source_address_prefix = "86.123.225.82/32"
+    source_port_range = "*"
+    destination_address_prefix = "*"
+    destination_port_range = "*"
+  }
+
+  security_rule {
+    name = "allowazure"
+    priority = "102"
+    direction = "Inbound"
+    access = "Allow"
+    protocol = "*"
+    source_address_prefix = "AzureCloud"
+    source_port_range = "*"
+    destination_port_range = "*"
+    destination_address_prefix = "*"
+  }
+}
+
 resource "azurerm_network_interface_security_group_association" "nsg_link_vmnic" {
   network_interface_id = azurerm_network_interface.nic_runner.id
   network_security_group_id = azurerm_network_security_group.nsg_vm.id
@@ -360,4 +354,14 @@ resource "azurerm_network_interface_security_group_association" "nsg_link_vmnic"
 resource "azurerm_subnet_network_security_group_association" "nsg_link_db" {
   subnet_id                 = azurerm_subnet.snet_db.id
   network_security_group_id = azurerm_network_security_group.nsg_db.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "nsg_link_backend" {
+  subnet_id = azurerm_subnet.snet_backend.id
+  network_security_group_id = azurerm_network_security_group.nsg_func_apps.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "nsg_link_frontend" {
+  subnet_id = azurerm_subnet.snet_frontend.id
+  network_security_group_id = azurerm_network_security_group.nsg_func_apps.id
 }

@@ -21,45 +21,64 @@ resource "azurerm_service_plan" "asp_func_apps" {
 # Func Apps
 #
 module "func_app_backend" {
-  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/func-apps/backend"
+  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/func-apps/python"
   resource_group_name = azurerm_resource_group.rg_todo_func_app.name
-  project_name = var.project_name
+  name = "func-app-${var.project_name}-backend-${var.env}"
   env = var.env
+  project_name = var.project_name
   location = var.location
   serviceplan = azurerm_service_plan.asp_func_apps.id
   stgname = module.stg_func_app.name
   subnet_id = azurerm_subnet.snet_backend.id
-  networkaccess = "private"
-  allowedorigins = "https://${module.func_app_frontend.name}.azurewebsites.net"
-  build_in_azure = false
-  db_url = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.connection_string_db.versionless_id})"
+  app_settings = {
+    "FUNCTIONS_WORKER_RUNTIME" = "python"
+
+    "DATABASE_URL" = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault_secret.connection_string_db.versionless_id})"
+
+    "ALLOWED_ORIGINS"                  = "https://${module.func_app_frontend.name}.azurewebsites.net"
+    "AzureWebJobsStorage__accountName" = module.stg_func_app.name
+
+    "env" = var.env
+  }
 }
 
 module "func_app_frontend" {
-  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/func-apps/frontend"
+  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/func-apps/node"
   resource_group_name = azurerm_resource_group.rg_todo_func_app.name
   project_name = var.project_name
+  name = "func-app-${var.project_name}-frontend-${var.env}"
   env = var.env
   location = var.location
   serviceplan = azurerm_service_plan.asp_func_apps.id
   stgname = module.stg_func_app.name
   subnet_id = azurerm_subnet.snet_frontend.id
-  build_in_azure = false
-  networkaccess = "private"
+  app_settings = {
+    "WEBSITE_VNET_ROUTE_ALL" = "1"
+
+    "AzureWebJobsStorage__accountName" = module.stg_func_app.name
+  }
 }
 
 module "func_app_runner" {
-  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/func-apps/runner"
+  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/func-apps/python"
   resource_group_name = azurerm_resource_group.rg_todo_func_app.name
+  name = "func-app-${var.project_name}-runner-${var.env}"
   project_name = var.project_name
   env = var.env
   location = var.location
   serviceplan = azurerm_service_plan.asp_func_apps.id
   stgname = module.stg_func_app.name
   subnet_id = azurerm_subnet.snet_backend.id
-  networkaccess = "private"
-  subscription_id = data.azurerm_client_config.current.subscription_id
-  vm_rg = azurerm_resource_group.rg_vm.name
-  vm_name = azurerm_linux_virtual_machine.vm_runner.name
-  build_in_azure = true
+  app_settings = {
+    "AzureWebJobsFeatureFlags" = "EnableWorkerIndexing"
+    "FUNCTIONS_WORKER_RUNTIME" = "python"
+
+    "SCM_DO_BUILD_DURING_DEPLOYMENT" = "true"
+    "Azure_Subscription_Id" = data.azurerm_client_config.current.subscription_id
+    "Vm_Resource_Group" = azurerm_resource_group.rg_vm.name
+    "Vm_Name" = azurerm_linux_virtual_machine.vm_runner.name
+    "AzureWebJobsStorage__accountName" = module.stg_func_app.name
+
+    "env" = var.env
+  }
 }

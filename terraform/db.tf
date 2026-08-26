@@ -12,7 +12,7 @@ module "db_module" {
   location = azurerm_resource_group.rg_todo_db.location
   adminpass = azurerm_key_vault_secret.db_pass.value
   subnet_id = azurerm_subnet.snet_db.id
-  dnszone = azurerm_private_dns_zone.db_private_dns.id
+  dnszone = module.db_dns.dns_id
   adminname = "postgres"
   sku = "B_Standard_B1ms"
   netaccess = false
