@@ -44,7 +44,7 @@ resource "azurerm_network_interface" "nic_runner" {
 
   ip_configuration {
     name = "ip-config-runner"
-    subnet_id = azurerm_subnet.snet_vm.id
+    subnet_id = module.snets.subnet_ids["vm"]
     private_ip_address_allocation = "Static"
     public_ip_address_id = azurerm_public_ip.pip_runner.id
   }
