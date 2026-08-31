@@ -50,6 +50,14 @@ resource "azurerm_key_vault_secret" "db_pass" {
   }
 }
 
+resource "azurerm_key_vault_secret" "PAT_runners" {
+  name = "PAT-Runner-${var.env}"
+  key_vault_id = azurerm_key_vault.kv_todo.id
+  lifecycle {
+    ignore_changes = [ value ]
+  }
+}
+
 # locals {
 #   kv_access_type = {
 #     "user" = "bb0514bf-e920-4ad4-855a-1e7be403d253"
