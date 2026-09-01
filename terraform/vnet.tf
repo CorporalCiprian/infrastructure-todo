@@ -181,7 +181,7 @@ module "pep_kv" {
   location = azurerm_resource_group.rg_vnet.location
   rgname = azurerm_resource_group.rg_vnet.name
   connectionname = "service-conn-apps-kv-${var.env}"
-  connectionid = module.stg_func_app.id
+  connectionid = module.key_vault.id
   subresource_names = ["vault"]
   dnsgroupname = "dns-group-kv-${var.env}"
   dnszoneids = [module.kv_dns.dns_id]
@@ -238,7 +238,7 @@ module "nsg_vm" {
     source_address_prefix = "136.255.102.82/32"
     source_port_range = "*"
     destination_port_range = "*"
-    destination_address_prefix = azurerm_public_ip.pip_runner.ip_address 
+    destination_address_prefix = module.snets.address_prefix["vm"]
   }
 
   denyallaccess = {
@@ -249,7 +249,7 @@ module "nsg_vm" {
     source_address_prefix = "*"
     source_port_range = "*"
     destination_port_range = "*"
-    destination_address_prefix = azurerm_public_ip.pip_runner.ip_address
+    destination_address_prefix = module.snets.address_prefix["vm"]
   }
 
   SSH = {
@@ -318,8 +318,8 @@ module "nsg_func_apps" {
   }
 }
 
-resource "azurerm_network_interface_security_group_association" "nsg_link_vmnic" {
-  network_interface_id = azurerm_network_interface.nic_runner.id
+resource "azurerm_subnet_network_security_group_association" "nsg_link_vmnic" {
+  subnet_id = module.snets.subnet_ids["vm"]
   network_security_group_id = module.nsg_vm.id
 }
 resource "azurerm_subnet_network_security_group_association" "nsg_link_db" {

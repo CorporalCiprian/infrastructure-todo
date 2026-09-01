@@ -14,6 +14,7 @@ module "key_vault" {
   location = azurerm_resource_group.rg_todo_kv.location
   rgname = azurerm_resource_group.rg_todo_kv.name
   sku = "standard"
+  rbac_authorization_enabled = true
 }
 
 
@@ -22,7 +23,7 @@ module "key_vault" {
 #
 resource "azurerm_key_vault_secret" "connection_string_db" {
   name         = "${var.project_name}-connection-string-${var.env}"
-  value        = "postgresql://${module.db_module.administrator_login}:${azurerm_key_vault_secret.db_pass.value}@${module.db_module.fqdn}:5432/${module.db_module.dbname}?sslmode=require"
+  value        = "postgresql://${module.db_module.administrator_login}:${azurerm_key_vault_secret.db_pass.value}@${module.db_module.fqdn}:5432/${module.db_module.dbnames["todo-db-${var.env}"]}?sslmode=require"
   key_vault_id = module.key_vault.id
 
   lifecycle {

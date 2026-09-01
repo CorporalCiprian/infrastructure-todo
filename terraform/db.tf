@@ -16,4 +16,7 @@ module "db_module" {
   adminname = "postgres"
   sku = "B_Standard_B1ms"
   netaccess = false
+  databases = {
+    "todo-db-${var.env}" = {},
+  }
 }
