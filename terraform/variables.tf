@@ -22,5 +22,3 @@ variable "project_name" {
   type = string
   default = ""
 }
-
-#TODO: app settings object for env specific vars

@@ -9,21 +9,12 @@ resource "azurerm_resource_group" "rg_todo_kv" {
 #
 # Key Vault
 #
-resource "azurerm_key_vault" "kv_todo" {
-  name                       = "kv-${var.project_name}-${var.env}v"
-  location                   = azurerm_resource_group.rg_todo_kv.location
-  resource_group_name        = azurerm_resource_group.rg_todo_kv.name
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "standard"
-  soft_delete_retention_days = 7
+module "key_vault" {
+  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/kv"
+  location = azurerm_resource_group.rg_todo_kv.location
+  rgname = azurerm_resource_group.rg_todo_kv.name
+  sku = "standard"
   rbac_authorization_enabled = true
-  network_acls {
-    default_action = "Deny"
-    bypass         = "AzureServices"
-    ip_rules = [
-      "136.255.102.82/32",
-    ]
-  } 
 }
 
 
@@ -32,8 +23,8 @@ resource "azurerm_key_vault" "kv_todo" {
 #
 resource "azurerm_key_vault_secret" "connection_string_db" {
   name         = "${var.project_name}-connection-string-${var.env}"
-  value        = "postgresql://${azurerm_postgresql_flexible_server.db_server.administrator_login}:${azurerm_key_vault_secret.db_pass.value}@${azurerm_postgresql_flexible_server.db_server.fqdn}:5432/${azurerm_postgresql_flexible_server_database.todo_db.name}?sslmode=require"
-  key_vault_id = azurerm_key_vault.kv_todo.id
+  value        = "postgresql://${module.db_module.administrator_login}:${azurerm_key_vault_secret.db_pass.value}@${module.db_module.fqdn}:5432/${module.db_module.dbnames["todo-db-${var.env}"]}?sslmode=require"
+  key_vault_id = module.key_vault.id
 
   lifecycle {
     ignore_changes = [value]
@@ -43,7 +34,7 @@ resource "azurerm_key_vault_secret" "connection_string_db" {
 resource "azurerm_key_vault_secret" "db_pass" {
   name         = "${var.project_name}-db-pass-${var.env}"
   value        = "1q2w3e"
-  key_vault_id = azurerm_key_vault.kv_todo.id
+  key_vault_id = module.key_vault.id
 
   lifecycle {
     ignore_changes = [value]
