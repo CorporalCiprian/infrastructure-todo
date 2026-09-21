@@ -78,8 +78,19 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_runner" {
     ip_configuration {
       name = "runner-ip-config"
       primary = true
-      subnet_id = module.snets.subnet_ids["vm"]
+      subnet_id = module.subnets.subnet_ids["vm"]
     }
+
+    
   }
-  custom_data = filebase64("vm-cloud-init.yml") 
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [ "/subscriptions/63daad41-14a4-47e4-ac30-399d12e79b3e/resourceGroups/managed-identities/providers/Microsoft.ManagedIdentity/userAssignedIdentities/actions-runner" ]
+  }
+  custom_data = filebase64("vm-cloud-init.yml")
+
+  lifecycle {
+      ignore_changes = [ instances ]
+    } 
 }

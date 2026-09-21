@@ -8,10 +8,11 @@ resource "azurerm_resource_group" "rg_todo_db" {
 
 module "db_module" {
   source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/psqlbd"
+  name = "psql-server-${var.project_name}-${var.env}"
   rgname =  azurerm_resource_group.rg_todo_db.name
   location = azurerm_resource_group.rg_todo_db.location
   adminpass = azurerm_key_vault_secret.db_pass.value
-  subnet_id = module.snets.subnet_ids["db"]
+  subnet_id = module.subnets.subnet_ids["db"]
   dnszone = module.db_dns.dns_id
   adminname = "postgres"
   sku = "B_Standard_B1ms"
