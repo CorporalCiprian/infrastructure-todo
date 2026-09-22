@@ -8,7 +8,7 @@ resource "azurerm_container_app_environment" "cae_todo" {
   resource_group_name = azurerm_resource_group.rg_containers.name
   location = azurerm_resource_group.rg_containers.location
   infrastructure_subnet_id = module.subnets.subnet_ids["container_apps"]
-  public_network_access = "Enabled"
+  public_network_access = "Disabled"
   lifecycle {
     ignore_changes = [ workload_profile, log_analytics_workspace_id ]
   }
@@ -66,7 +66,7 @@ resource "azurerm_container_registry" "cr_todo" {
   name = "cr${var.project_name}${var.env}"
   resource_group_name = azurerm_resource_group.rg_containers.name
   location = azurerm_resource_group.rg_containers.location
-  sku = "Basic"
+  sku = "Premium"
 
   identity {
     type = "SystemAssigned"

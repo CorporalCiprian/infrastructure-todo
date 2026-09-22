@@ -1,0 +1,14 @@
+on:
+  schedule:
+    - cron: "30 20 * * 5"
+  workflow_dispatch:
+jobs:
+    tf-destroy:
+      runs-on: ubuntu-latest
+      uses: CorporalCiprian/todo-template/.github/workflows/terraform-destroy.yml@main
+      secrets:
+        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID}}
+        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      with:
+        env: "dev"

@@ -111,6 +111,14 @@ module "table_dns" {
   vnetid = azurerm_virtual_network.vnet_todo.id
 }
 
+module "registry_dns" {
+  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/private_dns"
+  dnsname = "privatelink.azurecr.io"
+  rgname = azurerm_resource_group.rg_vnet.name
+  linkname = "registry-dns-link"
+  vnetid = azurerm_virtual_network.vnet_todo.id
+}
+
 # module "container_dns" {
 #   source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/private_dns"
 #   dnsname = "calmisland-c12b3b47.westeurope.azurecontainerapps.io"
@@ -181,6 +189,19 @@ module "pep_table" {
   subresource_names = ["table"]
   dnsgroupname = "dns-group-table-${var.env}"
   dnszoneids = [module.table_dns.dns_id]
+}
+
+module "pep_registry" {
+  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/private_endpoints"
+  pepname = "pep-registry-${var.env}"
+  subnet_id = module.subnets.subnet_ids["stg"]
+  location = azurerm_resource_group.rg_vnet.location
+  rgname = azurerm_resource_group.rg_vnet.name
+  connectionname = "service-conn-container-registry-${var.env}"
+  connectionid = azurerm_container_registry.cr_todo.id
+  subresource_names = ["registry"]
+  dnsgroupname = "dns-group-registry-${var.env}"
+  dnszoneids = [module.registry_dns.dns_id]
 }
 
 # module "pep_cae" {
