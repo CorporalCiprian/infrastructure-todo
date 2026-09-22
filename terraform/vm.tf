@@ -67,10 +67,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_runner" {
     version   = "latest"
   }
   admin_username = "adminuser"
-  admin_ssh_key {
-    username = "adminuser"
-    public_key = file("~/.ssh/id_rsa.pub")
-  }
+  # admin_ssh_key {
+  #   username = "adminuser"
+  #   public_key = file("~/.ssh/id_rsa.pub")
+  # }
   network_interface {
     name = "runner-interface"
     primary = true
@@ -88,7 +88,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_runner" {
     type = "UserAssigned"
     identity_ids = [ "/subscriptions/63daad41-14a4-47e4-ac30-399d12e79b3e/resourceGroups/managed-identities/providers/Microsoft.ManagedIdentity/userAssignedIdentities/actions-runner" ]
   }
-  custom_data = filebase64("vm-cloud-init.yml")
+  #custom_data = filebase64("vm-cloud-init.yml")
 
   lifecycle {
       ignore_changes = [ instances ]
