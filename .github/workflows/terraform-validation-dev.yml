@@ -4,10 +4,15 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  id-token: write
+  contents: read    
 jobs:
   terraform_plan:
     uses: CorporalCiprian/todo-template/.github/workflows/terraform-validation-template.yml@main
     secrets:
-      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID}}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
     with:
       env: "dev"

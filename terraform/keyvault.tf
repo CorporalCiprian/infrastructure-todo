@@ -15,6 +15,7 @@ module "key_vault" {
   rgname = azurerm_resource_group.rg_todo_kv.name
   sku = "standard"
   rbac_authorization_enabled = true
+  name = "kv-${var.project_name}-${var.env}-123"
 }
 
 
