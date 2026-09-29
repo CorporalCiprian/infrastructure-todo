@@ -119,22 +119,21 @@ module "registry_dns" {
   vnetid = azurerm_virtual_network.vnet_todo.id
 }
 
-# module "container_dns" {
+# module "container_env_dns" {
 #   source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/private_dns"
-#   dnsname = "calmisland-c12b3b47.westeurope.azurecontainerapps.io"
+#   dnsname = "privatelink.${azurerm_resource_group.rg_containers.location}.azurecontainerapps.io"
 #   rgname = azurerm_resource_group.rg_vnet.name
-#   linkname = "container-environment-link"
+#   linkname = "container-env-link"
 #   vnetid = azurerm_virtual_network.vnet_todo.id
 # }
 
-# module "backend_dns" {
+# module "frontend_dns" {
 #   source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/private_dns"
-#   dnsname = "privatelink.westeurope.azurecontainerapps.io"
+#   dnsname = "${azurerm_container_app.ca_frontend.name}.${azurerm_container_app_environment.cae_todo.default_domain}"
 #   rgname = azurerm_resource_group.rg_vnet.name
-#   linkname = "container-backend-link"
+#   linkname = "container-frontend-link"
 #   vnetid = azurerm_virtual_network.vnet_todo.id
 # }
-
 
 #
 # Private endpoints
@@ -214,7 +213,7 @@ module "pep_registry" {
 #   connectionid = azurerm_container_app_environment.cae_todo.id
 #   subresource_names = ["managedEnvironments"]
 #   dnsgroupname = "dns-group-containers-${var.env}"
-#   dnszoneids = [ module.container_dns.dns_id, module.backend_dns.dns_id ]
+#   dnszoneids = [ module.container_env_dns.dns_id ]
 # }
 
 # resource "azurerm_private_endpoint" "pep_stg_frontend" {
