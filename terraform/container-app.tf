@@ -8,7 +8,7 @@ resource "azurerm_container_app_environment" "cae_todo" {
   resource_group_name = azurerm_resource_group.rg_containers.name
   location = azurerm_resource_group.rg_containers.location
   infrastructure_subnet_id = module.subnets.subnet_ids["container_apps"]
-  public_network_access = "Disabled"
+  public_network_access = "Enabled"
   lifecycle {
     ignore_changes = [ workload_profile, log_analytics_workspace_id ]
   }
@@ -23,9 +23,10 @@ resource "azurerm_container_app" "ca_backend" {
   secret {
     key_vault_secret_id = azurerm_key_vault_secret.connection_string_db.id
     name = azurerm_key_vault_secret.connection_string_db.name
-    identity = "System"
+    identity = "/subscriptions/63daad41-14a4-47e4-ac30-399d12e79b3e/resourceGroups/managed-identities/providers/Microsoft.ManagedIdentity/userAssignedIdentities/actions-runner"
   }
   template {
+    min_replicas = 1
     container {
       name = "backend-container"
       image = "mcr.microsoft.com/k8se/quickstart:latest"
@@ -33,14 +34,13 @@ resource "azurerm_container_app" "ca_backend" {
       memory = "0.5Gi"
       env {
         name = "ALLOWED_ORIGINS"
-        value = "https://${azurerm_container_app.ca_frontend.latest_revision_fqdn}/src"
+        value = "https://ca-frontend-todo-dev.${azurerm_container_app_environment.cae_todo.default_domain}"
+      }
+      env {
+        name = "DATABASE_URL"
+        secret_name = azurerm_key_vault_secret.connection_string_db.name
       }
     }
-  }
-
-  registry {
-    identity = "system"
-    server = azurerm_container_registry.cr_todo.login_server
   }
 
   ingress {
@@ -54,11 +54,12 @@ resource "azurerm_container_app" "ca_backend" {
   }
 
   identity {
-    type = "SystemAssigned"
+    type = "UserAssigned"
+    identity_ids = [ "/subscriptions/63daad41-14a4-47e4-ac30-399d12e79b3e/resourceGroups/managed-identities/providers/Microsoft.ManagedIdentity/userAssignedIdentities/actions-runner" ]
   }
 
   lifecycle {
-    ignore_changes = [ workload_profile_name , template, secret ]
+    ignore_changes = [ workload_profile_name, registry, secret, template ]
   }
 }
 
@@ -92,15 +93,21 @@ resource "azurerm_container_app" "ca_frontend" {
   }
   
   template {
+    min_replicas = 1
     container {
       name = "frontend-container"
       image = "mcr.microsoft.com/k8se/quickstart:latest"
       cpu = 0.25
       memory = "0.5Gi"
+
+      env {
+        name = "VITE_API_URL"
+        value = "https://${azurerm_container_app.ca_backend.ingress[0].fqdn}"
+      }
     }
   }
   
   lifecycle {
-    ignore_changes = [ workload_profile_name , registry, template, secret ]
+    ignore_changes = [ workload_profile_name , registry, secret, template ]
   }
 }
