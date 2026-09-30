@@ -48,7 +48,7 @@ resource "azurerm_container_app" "ca_backend" {
       latest_revision = true
     }
     cors {
-      allowed_origins = [ "azurerm_container_app.ca_frontend.ingress[0].fqdn" ]
+      allowed_origins = [ azurerm_container_app.ca_frontend.ingress[0].fqdn, ]
       allowed_headers = ["*"]
       allowed_methods = [ "*" ]
     }
