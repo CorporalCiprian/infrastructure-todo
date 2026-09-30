@@ -67,6 +67,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_runner" {
     version   = "latest"
   }
   admin_username = "adminuser"
+  admin_password = "abv123.5"
+  disable_password_authentication = false
   # admin_ssh_key {
   #   username   = "adminuser"
   #   public_key = file("~/.ssh/id_rsa.pub")
