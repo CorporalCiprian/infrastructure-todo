@@ -2,20 +2,20 @@
 # Resource Group
 #
 resource "azurerm_resource_group" "rg_todo_db" {
-  name = "rg-${var.project_name}-db-${var.env}"
+  name     = "rg-${var.project_name}-db-${var.env}"
   location = var.location
 }
 
 module "db_module" {
-  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/psqlbd"
-  name = "psql-server-${var.project_name}-${var.env}"
-  rgname =  azurerm_resource_group.rg_todo_db.name
-  location = azurerm_resource_group.rg_todo_db.location
+  source    = "git::https://github.com/CorporalCiprian/terraform-modules//modules/psqlbd"
+  name      = "psql-server-${var.project_name}-${var.env}"
+  rgname    = azurerm_resource_group.rg_todo_db.name
+  location  = azurerm_resource_group.rg_todo_db.location
   adminpass = azurerm_key_vault_secret.db_pass.value
   subnet_id = module.subnets.subnet_ids["db"]
-  dnszone = module.db_dns.dns_id
+  dnszone   = module.db_dns.dns_id
   adminname = "postgres"
-  sku = "B_Standard_B1ms"
+  sku       = "B_Standard_B1ms"
   netaccess = false
   databases = {
     "todo-db-${var.env}" = {},

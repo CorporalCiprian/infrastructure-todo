@@ -1,2 +1,2 @@
-env = "dev"
+env          = "dev"
 project_name = "todo"
