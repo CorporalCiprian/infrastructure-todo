@@ -42,11 +42,15 @@ resource "azurerm_container_app" "ca_backend" {
       }
     }
   }
-
   ingress {
     traffic_weight {
       percentage      = 100
       latest_revision = true
+    }
+    cors {
+      allowed_origins = azurerm_container_app.ca_frontend.ingress[0].fqdn
+      allowed_headers = ["*"]
+      allowed_methods = [ "GET", "PUT", "POST", "DELETE"]
     }
     transport        = "auto"
     external_enabled = true

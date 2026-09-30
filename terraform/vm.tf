@@ -67,10 +67,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_runner" {
     version   = "latest"
   }
   admin_username = "adminuser"
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = file("~/.ssh/id_rsa.pub")
-  }
+  # admin_ssh_key {
+  #   username   = "adminuser"
+  #   public_key = file("~/.ssh/id_rsa.pub")
+  # }
   network_interface {
     name    = "runner-interface"
     primary = true
