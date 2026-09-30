@@ -2,7 +2,7 @@
 # Resource Group
 #
 resource "azurerm_resource_group" "rg_vm" {
-  name = "rg-vm-${var.env}"
+  name     = "rg-vm-${var.env}"
   location = var.location
 }
 # resource "azurerm_linux_virtual_machine" "vm_runner" {
@@ -51,14 +51,14 @@ resource "azurerm_resource_group" "rg_vm" {
 # }
 
 resource "azurerm_linux_virtual_machine_scale_set" "vmss_runner" {
-  name = "vmss-runner-${var.env}"
+  name                = "vmss-runner-${var.env}"
   resource_group_name = azurerm_resource_group.rg_vm.name
-  location = azurerm_resource_group.rg_vm.location
-  sku = "Standard_B2as_v2"
-  instances = 0
+  location            = azurerm_resource_group.rg_vm.location
+  sku                 = "Standard_B2as_v2"
+  instances           = 0
   os_disk {
     storage_account_type = "Standard_LRS"
-    caching = "ReadWrite"
+    caching              = "ReadWrite"
   }
   source_image_reference {
     publisher = "Canonical"
@@ -67,30 +67,30 @@ resource "azurerm_linux_virtual_machine_scale_set" "vmss_runner" {
     version   = "latest"
   }
   admin_username = "adminuser"
-  admin_ssh_key {
-    username = "adminuser"
-    public_key = file("~/.ssh/id_rsa.pub")
-  }
+  # admin_ssh_key {
+  #   username   = "adminuser"
+  #   public_key = file("~/.ssh/id_rsa.pub")
+  # }
   network_interface {
-    name = "runner-interface"
+    name    = "runner-interface"
     primary = true
 
     ip_configuration {
-      name = "runner-ip-config"
-      primary = true
+      name      = "runner-ip-config"
+      primary   = true
       subnet_id = module.subnets.subnet_ids["vm"]
     }
 
-    
+
   }
 
   identity {
-    type = "UserAssigned"
-    identity_ids = [ "/subscriptions/63daad41-14a4-47e4-ac30-399d12e79b3e/resourceGroups/managed-identities/providers/Microsoft.ManagedIdentity/userAssignedIdentities/actions-runner" ]
+    type         = "UserAssigned"
+    identity_ids = ["/subscriptions/63daad41-14a4-47e4-ac30-399d12e79b3e/resourceGroups/managed-identities/providers/Microsoft.ManagedIdentity/userAssignedIdentities/actions-runner"]
   }
-  custom_data = filebase64("vm-cloud-init.yml.example")
+  custom_data = filebase64("vm-cloud-init.yml")
 
   lifecycle {
-      ignore_changes = [ instances ]
-    } 
+    ignore_changes = [instances]
+  }
 }

@@ -10,12 +10,12 @@ resource "azurerm_resource_group" "rg_todo_kv" {
 # Key Vault
 #
 module "key_vault" {
-  source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/kv"
-  location = azurerm_resource_group.rg_todo_kv.location
-  rgname = azurerm_resource_group.rg_todo_kv.name
-  sku = "standard"
+  source                     = "git::https://github.com/CorporalCiprian/terraform-modules//modules/kv"
+  location                   = azurerm_resource_group.rg_todo_kv.location
+  rgname                     = azurerm_resource_group.rg_todo_kv.name
+  sku                        = "standard"
   rbac_authorization_enabled = true
-  name = "kv-${var.project_name}-${var.env}-123"
+  name                       = "kv-${var.project_name}-${var.env}-123"
 }
 
 
