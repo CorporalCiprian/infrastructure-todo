@@ -16,6 +16,10 @@ module "key_vault" {
   sku                        = "standard"
   rbac_authorization_enabled = true
   name                       = "kv-${var.project_name}-${var.env}-123"
+  enable_secret_expiration_alert = true
+  email_receivers = {
+    email-alert-1 = "cipriangheorghe197870@gmail.com"
+  }
 }
 
 
