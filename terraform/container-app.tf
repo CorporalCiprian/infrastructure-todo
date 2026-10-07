@@ -8,7 +8,7 @@ resource "azurerm_container_app_environment" "cae_todo" {
   resource_group_name      = azurerm_resource_group.rg_containers.name
   location                 = azurerm_resource_group.rg_containers.location
   infrastructure_subnet_id = module.subnets.subnet_ids["container_apps"]
-  public_network_access    = "Enabled"
+  public_network_access    = "Disabled"
   lifecycle {
     ignore_changes = [workload_profile, log_analytics_workspace_id]
   }
@@ -32,10 +32,6 @@ resource "azurerm_container_app" "ca_backend" {
       image  = "mcr.microsoft.com/k8se/quickstart:latest"
       cpu    = 0.25
       memory = "0.5Gi"
-      env {
-        name  = "ALLOWED_ORIGINS"
-        value = azurerm_container_app.ca_frontend.ingress[0].fqdn
-      }
       env {
         name        = "DATABASE_URL"
         secret_name = azurerm_key_vault_secret.connection_string_db.name
@@ -73,6 +69,7 @@ resource "azurerm_container_registry" "cr_todo" {
   location            = azurerm_resource_group.rg_containers.location
   sku                 = "Premium"
 
+  public_network_access_enabled = false
   identity {
     type = "SystemAssigned"
   }
