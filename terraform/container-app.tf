@@ -1,19 +1,28 @@
+#
+# Resource Group
+#
 resource "azurerm_resource_group" "rg_containers" {
   name     = "rg-containers-${var.project_name}-${var.env}"
   location = var.location
 }
 
+#
+# Environment
+#
 resource "azurerm_container_app_environment" "cae_todo" {
   name                     = "cae-${var.project_name}-${var.env}"
   resource_group_name      = azurerm_resource_group.rg_containers.name
   location                 = azurerm_resource_group.rg_containers.location
   infrastructure_subnet_id = module.subnets.subnet_ids["container_apps"]
-  public_network_access    = "Disabled"
+  public_network_access    = "Enabled"
   lifecycle {
     ignore_changes = [workload_profile, log_analytics_workspace_id]
   }
 }
 
+#
+# Container apps
+#
 resource "azurerm_container_app" "ca_backend" {
   name                         = "ca-backend-${var.project_name}-${var.env}"
   container_app_environment_id = azurerm_container_app_environment.cae_todo.id
@@ -46,7 +55,7 @@ resource "azurerm_container_app" "ca_backend" {
     cors {
       allowed_origins = [ "https://${azurerm_container_app.ca_frontend.ingress[0].fqdn}", ]
       allowed_headers = ["*"]
-      allowed_methods = [ "*" ]
+      allowed_methods = ["*"]
     }
     transport        = "auto"
     external_enabled = true
@@ -61,20 +70,6 @@ resource "azurerm_container_app" "ca_backend" {
   lifecycle {
     ignore_changes = [workload_profile_name, registry, secret, template]
   }
-}
-
-resource "azurerm_container_registry" "cr_todo" {
-  name                = "cr${var.project_name}${var.env}"
-  resource_group_name = azurerm_resource_group.rg_containers.name
-  location            = azurerm_resource_group.rg_containers.location
-  sku                 = "Premium"
-
-  public_network_access_enabled = false
-  identity {
-    type = "SystemAssigned"
-  }
-
-  admin_enabled = true
 }
 
 resource "azurerm_container_app" "ca_frontend" {
@@ -106,4 +101,21 @@ resource "azurerm_container_app" "ca_frontend" {
   lifecycle {
     ignore_changes = [workload_profile_name, registry, secret, template]
   }
+}
+
+#
+# Registry
+#
+resource "azurerm_container_registry" "cr_todo" {
+  name                = "cr${var.project_name}${var.env}"
+  resource_group_name = azurerm_resource_group.rg_containers.name
+  location            = azurerm_resource_group.rg_containers.location
+  sku                 = "Premium"
+
+  public_network_access_enabled = false
+  identity {
+    type = "SystemAssigned"
+  }
+
+  admin_enabled = true
 }
