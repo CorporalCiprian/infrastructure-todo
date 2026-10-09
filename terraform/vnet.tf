@@ -119,22 +119,6 @@ module "registry_dns" {
   vnetid   = azurerm_virtual_network.vnet_todo.id
 }
 
-# module "container_env_dns" {
-#   source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/private_dns"
-#   dnsname = "privatelink.${azurerm_resource_group.rg_containers.location}.azurecontainerapps.io"
-#   rgname = azurerm_resource_group.rg_vnet.name
-#   linkname = "container-env-link"
-#   vnetid = azurerm_virtual_network.vnet_todo.id
-# }
-
-# module "frontend_dns" {
-#   source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/private_dns"
-#   dnsname = "${azurerm_container_app.ca_frontend.name}.${azurerm_container_app_environment.cae_todo.default_domain}"
-#   rgname = azurerm_resource_group.rg_vnet.name
-#   linkname = "container-frontend-link"
-#   vnetid = azurerm_virtual_network.vnet_todo.id
-# }
-
 #
 # Private endpoints
 #
@@ -203,31 +187,6 @@ module "pep_registry" {
   dnszoneids        = [module.registry_dns.dns_id]
 }
 
-# module "pep_cae" {
-#   source = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/private_endpoints"
-#   pepname = "pep-caea-${var.env}"
-#   subnet_id = module.subnets.subnet_ids["stg"]
-#   location = azurerm_resource_group.rg_vnet.location
-#   rgname = azurerm_resource_group.rg_vnet.name
-#   connectionname = "service-conn-container-apps-${var.env}"
-#   connectionid = azurerm_container_app_environment.cae_todo.id
-#   subresource_names = ["managedEnvironments"]
-#   dnsgroupname = "dns-group-containers-${var.env}"
-#   dnszoneids = [ module.container_env_dns.dns_id ]
-# }
-
-# resource "azurerm_private_endpoint" "pep_stg_frontend" {
-#   name = "pep-stg-frontend-${var.env}"
-#   subnet_id = module.subnets.subnet_ids.id
-#   location = azurerm_resource_group.rg_vnet.location
-#   resource_group_name = azurerm_resource_group.rg_vnet.name
-#   private_service_connection {
-#     name = "service-conn-frontend-stg-${var.env}"
-#     is_manual_connection = false
-#     private_connection_resource_id = azurerm_storage_account.stg_func_app_fr.id
-#   }
-# }
-
 module "pep_kv" {
   source            = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/private_endpoints"
   pepname           = "pep-kv-${var.env}"
@@ -284,47 +243,6 @@ module "nsg_vm" {
   resource_group_name = azurerm_resource_group.rg_vnet.name
 
   security_rules = {
-    denyallaccess = {
-      priority                   = 4000
-      direction                  = "Inbound"
-      access                     = "Deny"
-      protocol                   = "*"
-      source_address_prefix      = "*"
-      source_port_range          = "*"
-      destination_port_range     = "*"
-      destination_address_prefix = module.subnets.address_prefix["vm"]
-    }
-    allowazure = {
-      priority                   = "102"
-      direction                  = "Inbound"
-      access                     = "Allow"
-      protocol                   = "*"
-      source_address_prefix      = "AzureCloud"
-      source_port_range          = "*"
-      destination_port_range     = "*"
-      destination_address_prefix = "*"
-    }
-  }
-}
-
-module "nsg_func_apps" {
-  source              = "git::https://github.com/CorporalCiprian/terraform-modules//modules/virtualnetworking/nsg"
-  name                = "nsg-func-apps-${var.env}"
-  location            = azurerm_resource_group.rg_vnet.location
-  resource_group_name = azurerm_resource_group.rg_vnet.name
-
-  security_rules = {
-    denyallaccess = {
-      priority                   = "4000"
-      direction                  = "Inbound"
-      access                     = "Deny"
-      protocol                   = "*"
-      source_address_prefix      = "*"
-      source_port_range          = "*"
-      destination_port_range     = "*"
-      destination_address_prefix = "*"
-    }
-
     allowazure = {
       priority                   = "102"
       direction                  = "Inbound"
@@ -345,49 +263,16 @@ module "nsg_container_apps" {
   resource_group_name = azurerm_resource_group.rg_vnet.name
 
   security_rules = {
-    # denyallaccess = {
-    #   priority                   = "4000"
-    #   direction                  = "Inbound"
-    #   access                     = "Deny"
-    #   protocol                   = "*"
-    #   source_address_prefix      = "*"
-    #   source_port_range          = "*"
-    #   destination_port_range     = "*"
-    #   destination_address_prefix = "*"
-    # }
-
-    # allowazure = {
-    #   priority                   = "102"
-    #   direction                  = "Inbound"
-    #   access                     = "Allow"
-    #   protocol                   = "*"
-    #   source_address_prefix      = "AzureCloud"
-    #   source_port_range          = "*"
-    #   destination_port_range     = "*"
-    #   destination_address_prefix = "*"
-    # }
-
-    # allowmyip = {
-    #   priority                   = "103"
-    #   direction                  = "Inbound"
-    #   access                     = "Allow"
-    #   protocol                   = "*"
-    #   source_address_prefix      = "136.255.102.82/32"
-    #   source_port_range          = "*"
-    #   destination_port_range     = "*"
-    #   destination_address_prefix = "*"
-    # }
-
-    # allowacr = {
-    #   priority                   = "100"
-    #   direction                  = "Outbound"
-    #   access                     = "Allow"
-    #   protocol                   = "*"
-    #   source_address_prefix      = "*"
-    #   source_port_range          = "*"
-    #   destination_port_range     = "*"
-    #   destination_address_prefix = "AzureContainerRegistry"
-    # }
+    allowacr = {
+      priority                   = "100"
+      direction                  = "Outbound"
+      access                     = "Allow"
+      protocol                   = "*"
+      source_address_prefix      = "*"
+      source_port_range          = "*"
+      destination_port_range     = "*"
+      destination_address_prefix = "AzureContainerRegistry"
+    }
   }
 }
 
@@ -398,17 +283,6 @@ module "nsg_stg" {
   resource_group_name = azurerm_resource_group.rg_vnet.name
 
   security_rules = {
-    denyallaccess = {
-      priority                   = "4000"
-      direction                  = "Inbound"
-      access                     = "Deny"
-      protocol                   = "*"
-      source_address_prefix      = "*"
-      source_port_range          = "*"
-      destination_port_range     = "*"
-      destination_address_prefix = "*"
-    }
-
     allowazure = {
       priority                   = "102"
       direction                  = "Inbound"
@@ -437,7 +311,7 @@ resource "azurerm_subnet_network_security_group_association" "nsg_link_stg" {
   subnet_id                 = module.subnets.subnet_ids["stg"]
   network_security_group_id = module.nsg_stg.id
 }
-resource "azurerm_subnet_network_security_group_association" "nsg_link_vmnic" {
+resource "azurerm_subnet_network_security_group_association" "nsg_link_vm" {
   subnet_id                 = module.subnets.subnet_ids["vm"]
   network_security_group_id = module.nsg_vm.id
 }
@@ -446,15 +320,6 @@ resource "azurerm_subnet_network_security_group_association" "nsg_link_db" {
   network_security_group_id = module.nsg_db.id
 }
 
-resource "azurerm_subnet_network_security_group_association" "nsg_link_backend" {
-  subnet_id                 = module.subnets.subnet_ids["backend"]
-  network_security_group_id = module.nsg_func_apps.id
-}
-
-resource "azurerm_subnet_network_security_group_association" "nsg_link_frontend" {
-  subnet_id                 = module.subnets.subnet_ids["frontend"]
-  network_security_group_id = module.nsg_func_apps.id
-}
 
 resource "azurerm_subnet_network_security_group_association" "nsg_link_containers" {
   subnet_id                 = module.subnets.subnet_ids["container_apps"]
