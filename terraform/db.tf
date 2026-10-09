@@ -6,6 +6,9 @@ resource "azurerm_resource_group" "rg_todo_db" {
   location = var.location
 }
 
+#
+# Database
+#
 module "db_module" {
   source    = "git::https://github.com/CorporalCiprian/terraform-modules//modules/psqlbd"
   name      = "psql-server-${var.project_name}-${var.env}"
