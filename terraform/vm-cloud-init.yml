@@ -2,11 +2,6 @@
 groups:
 - sudo: [root, sys, adminuser]
 - cloud-users
-users:
-- default
-- name: runneruser
-  primary_group: cloud-users
-  sudo: "ALL=(ALL) NOPASSWD:ALL"
 packages:
   - python
   - npm
